@@ -259,20 +259,19 @@ z-index:600;display:none;box-shadow:0 0 30px rgba(240,192,64,0.3);pointer-events
 .ach-title{color:var(--gold);font-size:10px;letter-spacing:1px;margin-bottom:2px}
 .ach-desc{color:#aaa;font-size:10px}
 
-/* ====== D-PAD (VIRTUAL JOYSTICK) ====== */
-#dpad{position:fixed;bottom:20px;left:20px;z-index:200;
-display:grid;grid-template-columns:56px 56px 56px;grid-template-rows:56px 56px 56px;gap:4px;
-opacity:0.85;pointer-events:auto}
-#dpad.hidden{display:none}
-.dpad-btn{width:56px;height:56px;background:rgba(14,14,28,0.92);
-border:1.5px solid rgba(52,152,219,0.6);border-radius:10px;
-display:flex;align-items:center;justify-content:center;
-color:rgba(0,229,255,0.9);font-size:22px;cursor:pointer;
-transition:all .1s;-webkit-tap-highlight-color:transparent;
-user-select:none;-webkit-user-select:none;touch-action:none}
-.dpad-btn:active,.dpad-btn.pressed{background:rgba(52,152,219,0.3);border-color:var(--cyan);
-box-shadow:0 0 12px rgba(0,229,255,0.4);transform:scale(0.93)}
-.dpad-blank{background:transparent;border:none;pointer-events:none}
+/* ====== SWIPE HINT ====== */
+#swipeHint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.35);
+border-radius:30px;padding:8px 20px;font-size:12px;color:rgba(0,229,255,0.8);
+letter-spacing:2px;z-index:200;pointer-events:none;
+opacity:0;transition:opacity .5s;white-space:nowrap}
+#swipeHint.show{opacity:1}
+
+/* Swipe direction flash overlay */
+#swipeFlash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+font-size:80px;z-index:190;pointer-events:none;opacity:0;
+transition:opacity .2s;filter:drop-shadow(0 0 20px rgba(0,229,255,0.8))}
+#swipeFlash.show{opacity:0.7}
 
 /* Scanlines */
 #scanlines{position:fixed;top:0;left:0;width:100%;height:100%;
@@ -399,18 +398,10 @@ pointer-events:none;z-index:600}
   </div>
 </div>
 
-<!-- D-PAD (primary touch controls) -->
-<div id="dpad" class="hidden">
-  <div class="dpad-blank"></div>
-  <button class="dpad-btn" id="dUp">↑</button>
-  <div class="dpad-blank"></div>
-  <button class="dpad-btn" id="dLeft">←</button>
-  <div class="dpad-blank dpad-center"></div>
-  <button class="dpad-btn" id="dRight">→</button>
-  <div class="dpad-blank"></div>
-  <button class="dpad-btn" id="dDown">↓</button>
-  <div class="dpad-blank"></div>
-</div>
+<!-- Swipe hint (shown briefly on game start) -->
+<div id="swipeHint">👆 SWIPE TO MOVE</div>
+<!-- Direction flash -->
+<div id="swipeFlash"></div>
 
 <!-- Title Screen -->
 <div id="title">
@@ -594,7 +585,7 @@ certBody:"Having successfully completed seven years of rigorous medical educatio
 sigDean:"DEAN OF MEDICINE",sigReg:"MEDICAL REGISTRAR",
 saveCert:"SAVE CERTIFICATE",playAgain:"PLAY AGAIN",
 graduates:"GRADUATES",
-howToPlay:"📱 USE THE D-PAD (arrows) to move\n\n🎯 Answer 3 medical questions per level\n\n🔓 Answer all 3 to unlock the green exit ▶\n\n⚡ Build answer streaks for bonus points!\n\n💾 Progress auto-saves every 3 correct answers\n\n⌨️ Keyboard: WASD or Arrow Keys also work!",
+howToPlay:"📱 SWIPE on the screen to move (up/down/left/right)\n\n🎯 Answer 3 medical questions per level\n\n🔓 Answer all 3 to unlock the green exit ▶\n\n⚡ Build answer streaks for bonus points!\n\n💾 Progress auto-saves every 3 correct answers\n\n⌨️ Keyboard: WASD or Arrow Keys also work!",
 langBtn:"🌐 LANGUAGE: ENGLISH",startBtn:"🎓 BEGIN MEDICAL SCHOOL",continueBtn:"📂 CONTINUE PROGRESS",howBtn:"❓ HOW TO PLAY",
 correct:"✓ CORRECT!",wrong:"✗ INCORRECT",
 narrator1:"Find the green exit ▶ to advance!",
@@ -619,7 +610,7 @@ certBody:"Ayant réussi avec distinction sept années d'enseignement médical ri
 sigDean:"DOYEN DE MÉDECINE",sigReg:"REGISTRAIRE MÉDICAL",
 saveCert:"ENREGISTRER",playAgain:"REJOUER",
 graduates:"DIPLÔMÉS",
-howToPlay:"📱 UTILISEZ LE D-PAD (flèches) pour vous déplacer\n\n🎯 Répondez à 3 questions par niveau\n\n🔓 Répondez aux 3 pour débloquer la sortie verte ▶\n\n⚡ Accumulez des séries pour des points bonus !\n\n💾 La progression sauvegarde automatiquement\n\n⌨️ Clavier : WASD ou touches fléchées",
+howToPlay:"📱 GLISSEZ le doigt sur l'écran pour vous déplacer (haut/bas/gauche/droite)\n\n🎯 Répondez à 3 questions par niveau\n\n🔓 Répondez aux 3 pour débloquer la sortie verte ▶\n\n⚡ Accumulez des séries pour des points bonus !\n\n💾 La progression sauvegarde automatiquement\n\n⌨️ Clavier : WASD ou touches fléchées",
 langBtn:"🌐 LANGUE : FRANÇAIS",startBtn:"🎓 COMMENCER L'ÉCOLE",continueBtn:"📂 CONTINUER",howBtn:"❓ COMMENT JOUER",
 correct:"✓ CORRECT !",wrong:"✗ INCORRECT",
 narrator1:"Trouvez la sortie verte ▶ pour avancer !",
@@ -753,89 +744,138 @@ function initCanvas() {
 function resize() {
   g.W = window.innerWidth;
   g.H = window.innerHeight;
-  g.canvas.width = g.W;
+  g.canvas.width  = g.W;
   g.canvas.height = g.H;
-  if (g.running) recalcOffsets();
+  if (g.running) { recalcCellSize(); recalcOffsets(); }
+}
+
+// Dynamically size cells so the maze fills the screen properly
+function recalcCellSize() {
+  const hudTop = 64;   // space for HUD bar at top
+  const hudBot = 24;   // breathing room at bottom
+  const availW = g.W - 16;
+  const availH = g.H - hudTop - hudBot;
+  const csW = Math.floor(availW / g.mazeW);
+  const csH = Math.floor(availH / g.mazeH);
+  g.cs = Math.max(14, Math.min(csW, csH, 36));
 }
 
 function recalcOffsets() {
-  // Reserve space for dpad on mobile
-  const padX = g.isMobile ? 200 : 0;
-  const usableW = g.W - padX;
-  g.cellOffX = Math.floor((usableW - g.mazeW * g.cs) / 2);
-  g.cellOffY = Math.floor((g.H - g.mazeH * g.cs) / 2) + 10;
+  const hudTop = 64;
+  const mazePixW = g.mazeW * g.cs;
+  const mazePixH = g.mazeH * g.cs;
+  // Perfectly centered horizontally; vertically below HUD
+  g.cellOffX = Math.round((g.W - mazePixW) / 2);
+  g.cellOffY = Math.round(hudTop + (g.H - hudTop - mazePixH) / 2);
   g.rx = cellToPixX(g.px);
   g.ry = cellToPixY(g.py);
   g.tx = g.rx; g.ty = g.ry;
 }
 
 // ============================================================
-// D-PAD SETUP
+// SWIPE TOUCH CONTROLS
 // ============================================================
-function initDpad() {
-  const dpad = document.getElementById('dpad');
+const swipe = { x: 0, y: 0, active: false, moved: false };
+const SWIPE_THRESHOLD = 22; // px minimum to register as swipe
+const SWIPE_DIRS = {
+  up:    { arrow: '⬆', dx:  0, dy: -1 },
+  down:  { arrow: '⬇', dx:  0, dy:  1 },
+  left:  { arrow: '⬅', dx: -1, dy:  0 },
+  right: { arrow: '➡', dx:  1, dy:  0 },
+};
 
-  function setupBtn(id, dx, dy) {
-    const btn = document.getElementById(id);
-    if (!btn) return;
+function initSwipe() {
+  const canvas = g.canvas;
 
-    // Touchstart for immediate response
-    btn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!g.running || g.paused || g.questionShowing) return;
-      btn.classList.add('pressed');
-      tryMove(dx, dy);
-    }, {passive: false});
+  canvas.addEventListener('touchstart', (e) => {
+    if (!g.running || g.paused || g.questionShowing) return;
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    swipe.x = t.clientX;
+    swipe.y = t.clientY;
+    swipe.active = true;
+    swipe.moved = false;
+  }, { passive: false });
 
-    btn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      btn.classList.remove('pressed');
-    }, {passive: false});
+  canvas.addEventListener('touchmove', (e) => {
+    if (!swipe.active || g.questionShowing) return;
+    e.preventDefault();
+    // Early move detection — register move as soon as threshold hit
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipe.x;
+    const dy = t.clientY - swipe.y;
+    const ax = Math.abs(dx), ay = Math.abs(dy);
+    if (!swipe.moved && (ax > SWIPE_THRESHOLD || ay > SWIPE_THRESHOLD)) {
+      swipe.moved = true;
+      let dir;
+      if (ax > ay) dir = dx > 0 ? 'right' : 'left';
+      else          dir = dy > 0 ? 'down'  : 'up';
+      const d = SWIPE_DIRS[dir];
+      flashSwipeDir(d.arrow);
+      tryMove(d.dx, d.dy);
+      // Reset start point so continuous sliding moves step by step
+      swipe.x = t.clientX;
+      swipe.y = t.clientY;
+      swipe.moved = false;
+    }
+  }, { passive: false });
 
-    // Also support mouse for desktop
-    btn.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      if (!g.running || g.paused || g.questionShowing) return;
-      btn.classList.add('pressed');
-      tryMove(dx, dy);
-    });
-    btn.addEventListener('mouseup', () => btn.classList.remove('pressed'));
-  }
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    swipe.active = false;
+    swipe.moved = false;
+  }, { passive: false });
 
-  setupBtn('dUp',    0, -1);
-  setupBtn('dDown',  0,  1);
-  setupBtn('dLeft', -1,  0);
-  setupBtn('dRight', 1,  0);
-
-  // Show dpad when game starts
-  dpad.classList.add('hidden');
+  canvas.addEventListener('touchcancel', () => {
+    swipe.active = false;
+  }, { passive: false });
 }
 
-function showDpad() {
-  document.getElementById('dpad').classList.remove('hidden');
+let flashTimeout = null;
+function flashSwipeDir(arrow) {
+  const el = document.getElementById('swipeFlash');
+  el.textContent = arrow;
+  el.classList.add('show');
+  clearTimeout(flashTimeout);
+  flashTimeout = setTimeout(() => el.classList.remove('show'), 200);
 }
 
-function hideDpad() {
-  document.getElementById('dpad').classList.add('hidden');
+let hintTimeout = null;
+function showSwipeHint() {
+  const el = document.getElementById('swipeHint');
+  el.classList.add('show');
+  clearTimeout(hintTimeout);
+  hintTimeout = setTimeout(() => el.classList.remove('show'), 3000);
 }
+
+// Keep these as no-ops (no dpad to show/hide)
+function showDpad() { showSwipeHint(); }
+function hideDpad() {}
 
 // ============================================================
 // MAZE GENERATION
 // ============================================================
 function genMaze() {
-  // Reserve dpad area on mobile (left 180px)
-  const padX = g.isMobile ? 190 : 0;
-  const usableW = g.W - padX;
+  // First set a temporary cell size to calculate maze dimensions
+  const hudTop = 64, hudBot = 24;
+  const availW = g.W - 16;
+  const availH = g.H - hudTop - hudBot;
 
   const base = 19 + (g.year - 1) * 2 + (g.level - 1);
-  let w = Math.min(base, Math.floor((usableW - 40) / g.cs));
-  let h = Math.min(base, Math.floor((g.H - 120) / g.cs));
+  // Use a trial cell size of 28 to estimate how many cells fit
+  const trialCs = 28;
+  let w = Math.min(base, Math.floor(availW / trialCs));
+  let h = Math.min(base, Math.floor(availH / trialCs));
   if (w < 9) w = 9;
   if (h < 9) h = 9;
   const mw = w % 2 === 0 ? w - 1 : w;
   const mh = h % 2 === 0 ? h - 1 : h;
   g.mazeW = mw; g.mazeH = mh;
+
+  // Now compute the real cell size that perfectly fits these dimensions
+  const csW = Math.floor(availW / mw);
+  const csH = Math.floor(availH / mh);
+  g.cs = Math.max(14, Math.min(csW, csH, 36));
 
   const maze = Array.from({length: mh}, () => new Array(mw).fill(1));
 
@@ -897,8 +937,8 @@ function loadLevel() {
   showNarrator(t('narrator3') + g.year + t('narrator4') + g.level + ' — ' + t('narrator1'));
 }
 
-function cellToPixX(x) { return g.cellOffX + x * g.cs + 2; }
-function cellToPixY(y) { return g.cellOffY + y * g.cs + 2; }
+function cellToPixX(x) { return g.cellOffX + x * g.cs; }
+function cellToPixY(y) { return g.cellOffY + y * g.cs; }
 
 // ============================================================
 // PLAYER MOVEMENT
@@ -1481,7 +1521,7 @@ function updateSaveInfoDisplay() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   initCanvas();
-  initDpad();
+  initSwipe();
   Achievements.load();
 
   try {
