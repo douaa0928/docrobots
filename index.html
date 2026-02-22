@@ -1070,10 +1070,6 @@ function showQuestion() {
   const q = g.pool.pop();
   g.questionShowing = true;
 
-  // DISABLE DPAD while question showing
-  document.getElementById('dpad').style.pointerEvents = 'none';
-  document.getElementById('dpad').style.opacity = '0.3';
-
   const lang = g.lang;
   const yearKey = 'year' + g.year;
   document.getElementById('qTitle').textContent = t('questionTitle');
@@ -1214,9 +1210,7 @@ function closeQuestion() {
   g.skipTimer = 0;
   g.currentCorrectIndex = -1;
   g.currentExplanation = '';
-  // Re-enable dpad
-  document.getElementById('dpad').style.pointerEvents = 'auto';
-  document.getElementById('dpad').style.opacity = '0.85';
+
 }
 
 // ============================================================
