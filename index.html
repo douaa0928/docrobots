@@ -9,7 +9,7 @@
 *{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent}
 :root{
 --blue:#3498db;--green:#2ecc71;--red:#e74c3c;--yellow:#f1c40f;
---purple:#9b59b6;--cyan:#00e5ff;--gold:#f0c040;
+--purple:#9b59b6;--cyan:#00e5ff;--gold:#f0c040;--orange:#e67e22;
 --bg:#07070f;--surface:#0e0e1a;--text:#c8c8d8;
 --wall:#1a1a30;--wall2:#22223a;
 --mono:'Share Tech Mono',monospace;--display:'VT323',monospace;
@@ -17,73 +17,148 @@
 body{overflow:hidden;background:var(--bg);font-family:var(--mono);color:var(--text);touch-action:manipulation}
 canvas{display:block;image-rendering:pixelated}
 #ui{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;font-family:var(--mono)}
-/* HUD - Mobile optimized */
+
+/* HUD - Enhanced with save indicator */
 .hud{position:absolute;background:rgba(7,7,15,0.92);border:1px solid #1e1e38;
 padding:4px 8px;border-radius:3px;pointer-events:none;z-index:100;
-font-size:11px;letter-spacing:1px;backdrop-filter:blur(6px)}
+font-size:11px;letter-spacing:1px;backdrop-filter:blur(6px);
+box-shadow:0 0 10px rgba(0,229,255,0.1)}
 #hYear{top:8px;left:8px;color:#aaa}
 #hLevel{top:8px;left:80px;color:#aaa}
 #hScore{top:8px;right:50px;color:var(--gold)}
+#hStreak{top:28px;right:8px;color:var(--orange);font-size:10px;display:none}
+#hStreak.active{display:block;animation:streakGlow 2s infinite}
+
+/* Save Indicator */
+#saveIndicator{position:absolute;top:8px;right:8px;background:rgba(46,204,113,0.2);
+border:1px solid var(--green);padding:4px 10px;border-radius:3px;
+font-size:10px;color:var(--green);z-index:100;opacity:0;transition:opacity .3s}
+#saveIndicator.show{opacity:1}
+
+/* Progress Bar with Glow */
 .prog-wrap{position:absolute;top:32px;left:8px;width:160px;height:4px;
-background:#111;border:1px solid #222;border-radius:2px;z-index:100}
+background:#111;border:1px solid #222;border-radius:2px;z-index:100;
+box-shadow:0 0 8px rgba(0,0,0,0.5)}
 .prog-fill{height:100%;border-radius:2px;transition:width .4s;
-background:linear-gradient(90deg,var(--blue),var(--cyan))}
+background:linear-gradient(90deg,var(--blue),var(--cyan));
+box-shadow:0 0 10px rgba(0,229,255,0.5)}
+
+/* Question Dots with Animation */
 .q-dots{position:absolute;top:42px;left:8px;display:flex;gap:5px;z-index:100}
 .q-dot{width:8px;height:8px;border-radius:50%;border:1px solid #334;background:#111;transition:all .3s}
-.q-dot.lit{background:var(--green);border-color:var(--green);box-shadow:0 0 6px var(--green)}
+.q-dot.lit{background:var(--green);border-color:var(--green);box-shadow:0 0 8px var(--green);animation:dotPulse 1s infinite}
+
 /* Narrator */
 #narrator{position:absolute;top:12%;left:50%;transform:translateX(-50%);
 background:rgba(10,10,20,0.94);border:1px solid #2a2a50;border-radius:4px;
-padding:6px 16px;font-style:italic;font-size:12px;opacity:0;
+padding:8px 20px;font-style:italic;font-size:12px;opacity:0;
 transition:opacity .4s;z-index:99;pointer-events:none;max-width:85%;text-align:center;
-color:#8080b0;box-shadow:0 0 20px rgba(0,200,255,0.1)}
-/* Pause button */
-#pauseBtn{position:absolute;top:8px;right:8px;width:32px;height:32px;
+color:#8080b0;box-shadow:0 0 20px rgba(0,200,255,0.15)}
+
+/* Pause Button Enhanced */
+#pauseBtn{position:absolute;top:8px;right:8px;width:36px;height:36px;
 background:rgba(14,14,26,0.92);border:1px solid #1e1e38;border-radius:50%;
-color:#888;font-size:11px;display:flex;align-items:center;justify-content:center;
-pointer-events:auto;z-index:200;cursor:pointer;transition:all .2s}
-#pauseBtn:hover{color:#ccc;border-color:#444}
-/* Overlay panels */
+color:#888;font-size:12px;display:flex;align-items:center;justify-content:center;
+pointer-events:auto;z-index:200;cursor:pointer;transition:all .2s;
+box-shadow:0 0 10px rgba(0,0,0,0.3)}
+#pauseBtn:hover{color:#ccc;border-color:#444;transform:scale(1.05);box-shadow:0 0 15px rgba(0,229,255,0.3)}
+
+/* Overlay Panels */
 .overlay{position:fixed;top:0;left:0;width:100%;height:100%;
 background:rgba(5,5,12,0.98);display:flex;flex-direction:column;
 align-items:center;justify-content:center;z-index:300;
-pointer-events:none;opacity:0;transition:opacity .35s}
+pointer-events:none;opacity:0;transition:opacity .35s;
+backdrop-filter:blur(8px)}
 .overlay.active{pointer-events:auto;opacity:1}
-/* Question panel - Mobile optimized */
+
+/* Question Panel Enhanced */
 #qPanel{z-index:400}
-.q-box{background:#0b0b18;border:1px solid #252545;border-radius:8px;
-padding:24px;max-width:92%;width:94%;max-height:88vh;overflow-y:auto;
-box-shadow:0 0 50px rgba(0,0,0,.9)}
+.q-box{background:linear-gradient(135deg,#0b0b18,#0f0f22);border:1px solid #252545;border-radius:12px;
+padding:28px;max-width:92%;width:94%;max-height:88vh;overflow-y:auto;
+box-shadow:0 0 60px rgba(0,229,255,0.15),0 0 100px rgba(52,152,219,0.1);
+position:relative;overflow:hidden}
+.q-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,var(--blue),var(--cyan),var(--blue));
+background-size:200% 100%;animation:gradientShift 3s infinite}
+
 .q-title{font-family:var(--display);font-size:1.6rem;color:var(--cyan);
-text-align:center;margin-bottom:16px;letter-spacing:2px}
+text-align:center;margin-bottom:16px;letter-spacing:2px;
+text-shadow:0 0 20px rgba(0,229,255,0.5)}
+
 .q-year-badge{display:inline-block;background:rgba(52,152,219,.15);
-border:1px solid var(--blue);border-radius:3px;padding:2px 8px;
-font-size:10px;color:var(--blue);letter-spacing:2px;margin-bottom:14px}
-.q-text{font-size:14px;line-height:1.7;margin-bottom:18px;text-align:center;color:#ccc}
-.q-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+border:1px solid var(--blue);border-radius:4px;padding:4px 12px;
+font-size:10px;color:var(--blue);letter-spacing:2px;margin-bottom:16px;
+box-shadow:0 0 10px rgba(52,152,219,0.3)}
+
+.q-text{font-size:15px;line-height:1.8;margin-bottom:20px;text-align:center;color:#ddd;
+font-weight:500;padding:12px;background:rgba(0,0,0,0.3);border-radius:6px;
+border-left:3px solid var(--cyan)}
+
+.q-opts{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .q-btn{background:rgba(12,12,22,0.92);border:1px solid #222240;color:#888899;
-padding:10px 16px;font-family:var(--mono);font-size:12px;letter-spacing:.5px;
-border-radius:4px;cursor:pointer;transition:all .18s;width:100%;text-align:left}
-.q-btn:hover{background:#14142a;border-color:#3a3a60;color:#bbbbd0;transform:translateX(3px)}
-.q-btn.correct{background:rgba(46,204,113,.2);border-color:var(--green);color:#aaffbb}
-.q-btn.wrong{background:rgba(231,76,60,.2);border-color:var(--red);color:#ffaaaa}
-.q-feedback{font-size:13px;text-align:center;margin-top:10px;min-height:20px;font-weight:bold}
-#skipBtn{display:block;margin:12px auto 0;background:#0d0d1e;border:1px solid #1e1e3e;
-color:#5555aa;padding:8px 24px;font-family:var(--mono);font-size:.8rem;
-letter-spacing:2px;border-radius:4px;cursor:pointer;transition:all .2s;text-transform:uppercase}
-#skipBtn:hover{border-color:var(--blue);color:#8888cc}
-.skip-bar-wrap{width:100%;height:2.5px;background:#111;border-radius:2px;margin-top:6px;overflow:hidden}
-.skip-bar{height:100%;background:var(--blue);border-radius:2px;transition:width .1s linear}
-/* Pause menu - Mobile optimized */
-#pauseMenu h2{font-family:var(--display);font-size:clamp(2rem,6vw,3.2rem);color:var(--blue);letter-spacing:2px;margin-bottom:14px}
-.menu-btn{background:rgba(12,12,22,0.92);border:1px solid #2a2a4a;color:var(--text);
-padding:12px 40px;font-family:var(--mono);font-size:.85rem;letter-spacing:2px;
-border-radius:4px;cursor:pointer;transition:all .2s;width:85%;text-align:center;
-text-transform:uppercase;margin:5px 0}
-.menu-btn:hover{background:#14142a;border-color:var(--blue);color:#dde;transform:translateY(-2px)}
+padding:12px 18px;font-family:var(--mono);font-size:12px;letter-spacing:.5px;
+border-radius:6px;cursor:pointer;transition:all .2s;width:100%;text-align:left;
+position:relative;overflow:hidden}
+.q-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
+transition:left .3s}
+.q-btn:hover::before{left:100%}
+.q-btn:hover{background:#14142a;border-color:#3a3a60;color:#bbbbd0;transform:translateX(4px);
+box-shadow:0 0 15px rgba(52,152,219,0.2)}
+.q-btn.correct{background:rgba(46,204,113,.25);border-color:var(--green);color:#aaffbb;
+box-shadow:0 0 20px rgba(46,204,113,0.3);animation:correctPulse 0.5s}
+.q-btn.wrong{background:rgba(231,76,60,.25);border-color:var(--red);color:#ffaaaa;
+box-shadow:0 0 20px rgba(231,76,60,0.3);animation:wrongShake 0.4s}
+
+.q-feedback{font-size:14px;text-align:center;margin-top:12px;min-height:24px;font-weight:bold;
+padding:8px;border-radius:4px}
+.q-feedback.correct{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid var(--green)}
+.q-feedback.wrong{background:rgba(231,76,60,0.15);color:var(--red);border:1px solid var(--red)}
+
+/* Explanation Box */
+.q-explanation{background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);
+border-radius:6px;padding:12px;margin-top:12px;font-size:12px;color:#88ccdd;
+display:none;animation:fadeIn 0.3s}
+.q-explanation.show{display:block}
+
+#skipBtn{display:block;margin:14px auto 0;background:linear-gradient(135deg,#0d0d1e,#1a1a2e);
+border:1px solid #1e1e3e;color:#5555aa;padding:10px 28px;font-family:var(--mono);
+font-size:.8rem;letter-spacing:2px;border-radius:6px;cursor:pointer;
+transition:all .2s;text-transform:uppercase;box-shadow:0 0 10px rgba(0,0,0,0.3)}
+#skipBtn:hover{border-color:var(--blue);color:#8888cc;transform:translateY(-2px);
+box-shadow:0 0 15px rgba(52,152,219,0.3)}
+#skipBtn:disabled{opacity:0.4;cursor:not-allowed}
+
+.skip-bar-wrap{width:100%;height:3px;background:#111;border-radius:2px;margin-top:8px;overflow:hidden}
+.skip-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));
+border-radius:2px;transition:width .1s linear;box-shadow:0 0 8px var(--blue)}
+
+/* Pause Menu Enhanced */
+#pauseMenu h2{font-family:var(--display);font-size:clamp(2rem,6vw,3.2rem);color:var(--blue);
+letter-spacing:2px;margin-bottom:18px;text-shadow:0 0 30px rgba(52,152,219,0.5)}
+.menu-btn{background:linear-gradient(135deg,rgba(12,12,22,0.92),rgba(20,20,35,0.92));
+border:1px solid #2a2a4a;color:var(--text);
+padding:14px 44px;font-family:var(--mono);font-size:.85rem;letter-spacing:2px;
+border-radius:6px;cursor:pointer;transition:all .2s;width:85%;text-align:center;
+text-transform:uppercase;margin:6px 0;box-shadow:0 0 15px rgba(0,0,0,0.3)}
+.menu-btn:hover{background:linear-gradient(135deg,#14142a,#1a1a35);border-color:var(--blue);
+color:#dde;transform:translateY(-3px);box-shadow:0 0 25px rgba(52,152,219,0.3)}
 .menu-btn.danger{border-color:#2a1010;color:#ff9999}
-.menu-btn.danger:hover{border-color:var(--red);background:#1a0a0a}
-/* Title screen - Mobile optimized */
+.menu-btn.danger:hover{border-color:var(--red);background:linear-gradient(135deg,#1a0a0a,#2a1010);
+box-shadow:0 0 25px rgba(231,76,60,0.3)}
+
+/* Stats Panel */
+.stats-panel{background:rgba(10,10,20,0.95);border:1px solid #252545;border-radius:8px;
+padding:16px;margin:12px 0;width:85%;max-height:200px;overflow-y:auto}
+.stats-title{font-family:var(--display);color:var(--cyan);font-size:1rem;
+margin-bottom:10px;letter-spacing:1.5px}
+.stat-row{display:flex;justify-content:space-between;padding:6px 0;
+border-bottom:1px solid rgba(255,255,255,0.05);font-size:11px}
+.stat-row:last-child{border-bottom:none}
+.stat-label{color:#888}
+.stat-value{color:var(--gold);font-weight:bold}
+
+/* Title Screen Enhanced */
 #title{position:absolute;top:0;left:0;width:100%;height:100%;
 background:radial-gradient(ellipse at 50% 60%,#0c1824 0%,var(--bg) 70%);
 display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -94,63 +169,112 @@ letter-spacing:5px;margin-bottom:8px;animation:pulse 4s infinite}
 letter-spacing:3px;text-align:center;
 text-shadow:0 0 25px rgba(0,229,255,.5),0 0 50px rgba(0,229,255,.25);
 line-height:1;margin-bottom:6px;animation:glow 3s infinite}
-.t-sub{font-family:var(--mono);font-size:11px;color:#2a7070;letter-spacing:3px;margin-bottom:36px}
-.t-btns{display:flex;flex-direction:column;align-items:center;gap:10px}
-.t-btn{background:rgba(12,12,22,0.92);border:1px solid #1e1e3e;color:#78cccc;
-padding:12px 44px;font-family:var(--mono);font-size:.85rem;letter-spacing:2.5px;
-border-radius:4px;cursor:pointer;transition:all .25s;width:88%;text-align:center;
+.t-sub{font-family:var(--mono);font-size:11px;color:#2a7070;letter-spacing:3px;margin-bottom:20px}
+
+/* Player Name Input */
+.name-input-wrap{margin-bottom:20px;text-align:center}
+.name-input-wrap label{display:block;color:#888;font-size:11px;letter-spacing:2px;margin-bottom:8px}
+#playerNameInput{background:rgba(12,12,22,0.92);border:1px solid #2a2a4a;
+color:var(--cyan);padding:10px 20px;font-family:var(--mono);font-size:14px;
+letter-spacing:2px;border-radius:6px;text-align:center;width:200px;
 text-transform:uppercase}
-.t-btn:hover{background:#14141e;border-color:var(--cyan);color:#ddffff;transform:scale(1.02);
-box-shadow:0 0 14px rgba(0,229,255,.22)}
-.t-btn.primary{border-color:#1a5060;color:#aaffe0}
+#playerNameInput:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 15px rgba(0,229,255,0.3)}
+
+.t-btns{display:flex;flex-direction:column;align-items:center;gap:10px}
+.t-btn{background:linear-gradient(135deg,rgba(12,12,22,0.92),rgba(20,20,35,0.92));
+border:1px solid #1e1e3e;color:#78cccc;
+padding:14px 48px;font-family:var(--mono);font-size:.85rem;letter-spacing:2.5px;
+border-radius:6px;cursor:pointer;transition:all .25s;width:88%;text-align:center;
+text-transform:uppercase;box-shadow:0 0 15px rgba(0,0,0,0.3)}
+.t-btn:hover{background:linear-gradient(135deg,#14141e,#1a1a2e);border-color:var(--cyan);
+color:#ddffff;transform:scale(1.02) translateY(-2px);
+box-shadow:0 0 25px rgba(0,229,255,.3)}
+.t-btn.primary{border-color:#1a5060;color:#aaffe0;box-shadow:0 0 20px rgba(0,229,255,0.2)}
+.t-btn.primary:hover{box-shadow:0 0 35px rgba(0,229,255,0.4)}
 .t-btn.lang{border-color:#3a3a7a;color:#ccccff}
+.t-btn.stats{border-color:#3a5a3a;color:#88cc88}
+.t-btn.continue{border-color:var(--green);color:var(--green);
+box-shadow:0 0 20px rgba(46,204,113,0.3)}
+.t-btn.continue:hover{box-shadow:0 0 35px rgba(46,204,113,0.5)}
+
+/* Save Info Display */
+#saveInfo{background:rgba(46,204,113,0.1);border:1px solid var(--green);
+border-radius:6px;padding:12px 20px;margin-top:15px;font-size:11px;
+color:var(--green);letter-spacing:1px;display:none}
+#saveInfo.show{display:block;animation:fadeIn 0.3s}
+
 #credits{position:absolute;bottom:14px;font-size:10px;color:#1e1e2e;letter-spacing:2px}
-/* Year complete - Mobile optimized */
+
+/* Year Complete Enhanced */
 #yearComp{z-index:450}
 .yc-title{font-family:var(--display);font-size:clamp(2rem,7vw,4rem);
 color:var(--green);letter-spacing:2px;text-align:center;
-text-shadow:0 0 25px rgba(46,204,113,.6);margin-bottom:14px}
+text-shadow:0 0 25px rgba(46,204,113,.6);margin-bottom:14px;
+animation:yearCompletePop 0.6s}
 .yc-text{font-family:var(--mono);font-size:15px;color:#aaa;letter-spacing:1.5px;
 text-align:center;max-width:90%;line-height:1.6;margin-bottom:30px}
-.yc-btn{background:rgba(12,12,22,0.92);border:1px solid #2a4a2a;color:var(--green);
-padding:14px 48px;font-family:var(--mono);font-size:.95rem;letter-spacing:2.5px;
-border-radius:4px;cursor:pointer;transition:all .3s;text-transform:uppercase;
-box-shadow:0 0 20px rgba(46,204,113,.25);width:85%}
-.yc-btn:hover{background:#0e1e0e;border-color:var(--green);color:#fff;transform:scale(1.04)}
-/* Certificate - Mobile optimized */
+.yc-btn{background:linear-gradient(135deg,rgba(12,12,22,0.92),rgba(20,20,35,0.92));
+border:1px solid #2a4a2a;color:var(--green);
+padding:16px 52px;font-family:var(--mono);font-size:.95rem;letter-spacing:2.5px;
+border-radius:6px;cursor:pointer;transition:all .3s;text-transform:uppercase;
+box-shadow:0 0 25px rgba(46,204,113,.3);width:85%}
+.yc-btn:hover{background:linear-gradient(135deg,#0e1e0e,#142414);border-color:var(--green);
+color:#fff;transform:scale(1.04);box-shadow:0 0 40px rgba(46,204,113,.5)}
+
+/* Certificate Enhanced */
 #certScreen{z-index:500;background:linear-gradient(135deg,#10101e,#07070f)}
-.cert-wrap{background:#f5f0e8;border:6px solid #c0a020;border-radius:6px;
-width:min(780px,95%);padding:30px 40px;text-align:center;
-box-shadow:0 0 50px rgba(0,229,255,.4),0 0 100px rgba(52,152,219,.2);
+.cert-wrap{background:#f5f0e8;border:6px solid #c0a020;border-radius:8px;
+width:min(780px,95%);padding:35px 45px;text-align:center;
+box-shadow:0 0 60px rgba(0,229,255,.4),0 0 120px rgba(52,152,219,.2);
 position:relative;overflow:hidden}
+.cert-wrap::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+background:radial-gradient(circle,rgba(255,215,0,0.1) 0%,transparent 70%);
+animation:certShine 8s infinite}
 .cert-border{position:absolute;inset:10px;border:2px solid #c0a020;border-radius:4px;pointer-events:none}
-.cert-corner{position:absolute;width:40px;height:40px;border-color:#c0a020;border-style:solid}
+.cert-corner{position:absolute;width:45px;height:45px;border-color:#c0a020;border-style:solid}
 .cert-corner.tl{top:14px;left:14px;border-width:2px 0 0 2px}
 .cert-corner.tr{top:14px;right:14px;border-width:2px 2px 0 0}
 .cert-corner.bl{bottom:14px;left:14px;border-width:0 0 2px 2px}
 .cert-corner.br{bottom:14px;right:14px;border-width:0 2px 2px 0}
-.cert-logo{font-size:42px;margin-bottom:4px}
-.cert-school{font-family:var(--display);font-size:1.4rem;color:#1a3a5a;letter-spacing:3px;margin-bottom:6px}
-.cert-presents{font-family:var(--mono);font-size:10px;color:#666;letter-spacing:2.5px;margin-bottom:4px}
+.cert-logo{font-size:48px;margin-bottom:6px;animation:logoFloat 3s infinite}
+.cert-school{font-family:var(--display);font-size:1.5rem;color:#1a3a5a;letter-spacing:3px;margin-bottom:8px}
+.cert-presents{font-family:var(--mono);font-size:10px;color:#666;letter-spacing:2.5px;margin-bottom:6px}
 .cert-name-area{border-bottom:2px solid #c0a020;border-top:2px solid #c0a020;
-padding:10px 0;margin:14px 0}
-#certName{font-family:var(--display);font-size:2rem;color:#1a3a5a;letter-spacing:2.5px}
-.cert-title-line{font-family:var(--display);font-size:1.4rem;color:#1a6a3a;letter-spacing:2.5px;margin:6px 0}
-.cert-body{font-family:var(--mono);font-size:10px;color:#444;line-height:1.6;
-margin:14px auto;max-width:520px;letter-spacing:.5px}
-.cert-date{font-family:var(--mono);font-size:10px;color:#666;letter-spacing:1.5px;margin-top:16px}
-.cert-sigs{display:flex;flex-direction:column;gap:12px;margin-top:16px;padding-top:10px}
+padding:12px 0;margin:16px 0;background:rgba(192,160,32,0.05)}
+#certName{font-family:var(--display);font-size:2.2rem;color:#1a3a5a;letter-spacing:2.5px;
+text-shadow:0 0 10px rgba(192,160,32,0.3)}
+.cert-title-line{font-family:var(--display);font-size:1.4rem;color:#1a6a3a;letter-spacing:2.5px;margin:8px 0}
+.cert-body{font-family:var(--mono);font-size:10px;color:#444;line-height:1.7;
+margin:16px auto;max-width:540px;letter-spacing:.5px;padding:12px;
+background:rgba(192,160,32,0.08);border-radius:4px}
+.cert-date{font-family:var(--mono);font-size:10px;color:#666;letter-spacing:1.5px;margin-top:18px}
+.cert-sigs{display:flex;flex-direction:column;gap:14px;margin-top:18px;padding-top:12px}
 .cert-sig{text-align:center}
-.cert-sig-line{border-bottom:1px solid #999;width:140px;margin:0 auto 4px}
+.cert-sig-line{border-bottom:1px solid #999;width:150px;margin:0 auto 6px}
 .cert-sig-title{font-family:var(--mono);font-size:9px;color:#666;letter-spacing:1px}
-.cert-btns{display:flex;flex-direction:column;gap:10px;margin-top:24px;justify-content:center}
-.c-btn{background:rgba(12,12,22,0.92);border:1px solid #2a2a4a;color:var(--cyan);
-padding:10px 28px;font-family:var(--mono);font-size:.8rem;letter-spacing:2px;
-border-radius:4px;cursor:pointer;transition:all .2s;text-transform:uppercase}
-.c-btn:hover{background:#14142a;border-color:var(--cyan);color:#fff;transform:translateY(-2px)}
-.c-btn.dl{background:var(--green);border-color:var(--green);color:#fff}
-.c-btn.dl:hover{background:#27ae60;border-color:#27ae60}
-/* Touch Controls - FULL SCREEN TOUCH */
+.cert-btns{display:flex;flex-direction:column;gap:10px;margin-top:26px;justify-content:center}
+.c-btn{background:linear-gradient(135deg,rgba(12,12,22,0.92),rgba(20,20,35,0.92));
+border:1px solid #2a2a4a;color:var(--cyan);
+padding:12px 32px;font-family:var(--mono);font-size:.8rem;letter-spacing:2px;
+border-radius:6px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.c-btn:hover{background:linear-gradient(135deg,#14142a,#1a1a35);border-color:var(--cyan);
+color:#fff;transform:translateY(-3px);box-shadow:0 0 20px rgba(0,229,255,0.3)}
+.c-btn.dl{background:linear-gradient(135deg,var(--green),#27ae60);border-color:var(--green);color:#fff;
+box-shadow:0 0 20px rgba(46,204,113,0.3)}
+.c-btn.dl:hover{background:linear-gradient(135deg,#27ae60,#2ecc71);box-shadow:0 0 30px rgba(46,204,113,0.5)}
+
+/* Achievement Popup */
+.achievement-popup{position:fixed;top:80px;right:8px;background:linear-gradient(135deg,#1a1a2e,#0f0f1e);
+border:1px solid var(--gold);border-radius:8px;padding:12px 16px;
+z-index:600;display:none;box-shadow:0 0 30px rgba(240,192,64,0.3);
+animation:achievementSlide 0.5s}
+.achievement-popup.show{display:block}
+.ach-icon{font-size:24px;margin-right:10px;vertical-align:middle}
+.ach-text{display:inline-block;vertical-align:middle}
+.ach-title{color:var(--gold);font-size:11px;letter-spacing:1px;margin-bottom:2px}
+.ach-desc{color:#aaa;font-size:10px}
+
+/* Touch Controls */
 #touchOverlay{position:absolute;top:0;left:0;width:100%;height:100%;
 background:transparent;pointer-events:auto;z-index:150;touch-action:none}
 .touch-zone{position:absolute;width:50%;height:100%}
@@ -158,33 +282,42 @@ background:transparent;pointer-events:auto;z-index:150;touch-action:none}
 #touchRight{right:0}
 .touch-indicator{position:absolute;width:80px;height:80px;
 border:2px dashed rgba(52,152,219,0.4);border-radius:50%;
-background:rgba(52,152,219,0.08);border-radius:50%;
+background:rgba(52,152,219,0.08);
 display:flex;align-items:center;justify-content:center;
 color:rgba(52,152,219,0.7);font-size:24px;font-weight:bold;
-opacity:0;transition:opacity 0.2s;pointer-events:none}
-#indicatorUp{top:25%;left:50%;transform:translate(-50%,-50%)}
-#indicatorDown{bottom:25%;left:50%;transform:translate(-50%,50%)}
-#indicatorLeft{top:50%;left:25%;transform:translate(-50%,-50%)}
-#indicatorRight{top:50%;right:25%;transform:translate(50%,-50%)}
+opacity:0;transition:opacity 0.2s;pointer-events:none;
+box-shadow:0 0 20px rgba(52,152,219,0.2)}
+
 /* Scanlines */
 #scanlines{position:absolute;top:0;left:0;width:100%;height:100%;
 background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.055) 2px,rgba(0,0,0,.055) 4px);
 pointer-events:none;z-index:600}
+
+/* Animations */
 @keyframes pulse{0%,100%{opacity:.85}50%{opacity:1}}
 @keyframes glow{
 0%,100%{text-shadow:0 0 25px rgba(0,229,255,.45),0 0 50px rgba(0,229,255,.2)}
 50%{text-shadow:0 0 40px rgba(0,229,255,.7),0 0 80px rgba(0,229,255,.35)}
 }
-@keyframes pop{0%{transform:scale(.5);opacity:0}80%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
-@keyframes ripple{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.5);opacity:0}}
-.hidden{display:none!important}
-/* Mobile-specific adjustments */
+@keyframes dotPulse{0%,100%{box-shadow:0 0 8px var(--green)}50%{box-shadow:0 0 15px var(--green)}}
+@keyframes streakGlow{0%,100%{box-shadow:0 0 10px var(--orange)}50%{box-shadow:0 0 20px var(--orange)}}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes correctPulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes yearCompletePop{0%{transform:scale(0.5);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes certShine{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes achievementSlide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes savePulse{0%,100%{box-shadow:0 0 10px var(--green)}50%{box-shadow:0 0 20px var(--green)}}
+
+/* Mobile adjustments */
 @media(max-width:480px){
 #mainTitle{font-size:clamp(2.2rem,14vw,4.5rem);letter-spacing:2px}
-.q-box{padding:20px}
+.q-box{padding:22px}
 .q-title{font-size:1.4rem}
-.q-text{font-size:13px}
-.q-btn{padding:9px 14px;font-size:11px}
+.q-text{font-size:13px;padding:10px}
+.q-btn{padding:11px 16px;font-size:11px}
 #hYear,#hLevel,#hScore{font-size:10px}
 .prog-wrap{top:28px;left:6px;width:140px;height:3.5px}
 .q-dots{top:38px;left:6px;gap:4px}
@@ -192,10 +325,12 @@ pointer-events:none;z-index:600}
 #certName{font-size:1.6rem}
 .cert-school{font-size:1.2rem}
 .cert-title-line{font-size:1.2rem}
-.yc-btn{padding:12px 40px;font-size:.85rem}
-.menu-btn{padding:11px 36px;font-size:.8rem}
-.t-btn{padding:11px 40px;font-size:.8rem}
+.yc-btn{padding:14px 44px;font-size:.85rem}
+.menu-btn{padding:13px 40px;font-size:.8rem}
+.t-btn{padding:13px 44px;font-size:.8rem}
 .touch-indicator{width:70px;height:70px;font-size:20px}
+.achievement-popup{top:70px;right:4px;padding:10px 12px}
+#playerNameInput{width:180px;font-size:12px}
 }
 </style>
 </head>
@@ -205,6 +340,8 @@ pointer-events:none;z-index:600}
 <div id="hYear" class="hud">YEAR: <span id="vYear">1</span>/7</div>
 <div id="hLevel" class="hud">LEVEL: <span id="vLevel">1</span>/7</div>
 <div id="hScore" class="hud">SCORE: <span id="vScore">0</span></div>
+<div id="hStreak" class="hud">🔥 STREAK: <span id="vStreak">0</span></div>
+<div id="saveIndicator">💾 SAVED</div>
 <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
 <div class="q-dots" id="qDots">
 <div class="q-dot" id="d0"></div>
@@ -213,13 +350,43 @@ pointer-events:none;z-index:600}
 </div>
 <div id="narrator"></div>
 <button id="pauseBtn">❙❙</button>
+
 <!-- Pause Menu -->
 <div class="overlay" id="pauseMenu">
 <h2 id="pTitle">PAUSED</h2>
+<div class="stats-panel" id="pauseStats">
+<div class="stat-row"><span class="stat-label">Player:</span><span class="stat-value" id="pausePlayerName">-</span></div>
+<div class="stat-row"><span class="stat-label">Year:</span><span class="stat-value" id="pauseYear">1</span></div>
+<div class="stat-row"><span class="stat-label">Level:</span><span class="stat-value" id="pauseLevel">1</span></div>
+<div class="stat-row"><span class="stat-label">Score:</span><span class="stat-value" id="pauseScore">0</span></div>
+</div>
 <button class="menu-btn" id="resumeBtn">RESUME</button>
 <button class="menu-btn" id="rstBtn">RESTART LEVEL</button>
+<button class="menu-btn" id="statsBtn">VIEW STATS</button>
 <button class="menu-btn danger" id="quitBtn">QUIT</button>
 </div>
+
+<!-- Stats Panel -->
+<div class="overlay" id="statsPanel">
+<div class="q-box" style="max-width:400px">
+<div class="q-title">YOUR STATISTICS</div>
+<div class="stats-panel">
+<div class="stat-row"><span class="stat-label">Player Name</span><span class="stat-value" id="statPlayerName">-</span></div>
+<div class="stat-row"><span class="stat-label">Total Score</span><span class="stat-value" id="statTotalScore">0</span></div>
+<div class="stat-row"><span class="stat-label">Questions Answered</span><span class="stat-value" id="statTotalQ">0</span></div>
+<div class="stat-row"><span class="stat-label">Correct Answers</span><span class="stat-value" id="statCorrect">0</span></div>
+<div class="stat-row"><span class="stat-label">Accuracy</span><span class="stat-value" id="statAccuracy">0%</span></div>
+<div class="stat-row"><span class="stat-label">Best Streak</span><span class="stat-value" id="statBestStreak">0</span></div>
+<div class="stat-row"><span class="stat-label">Current Streak</span><span class="stat-value" id="statCurrentStreak">0</span></div>
+<div class="stat-row"><span class="stat-label">Years Completed</span><span class="stat-value" id="statYears">0/7</span></div>
+<div class="stat-row"><span class="stat-label">Total Play Time</span><span class="stat-value" id="statPlayTime">0m</span></div>
+<div class="stat-row"><span class="stat-label">Last Saved</span><span class="stat-value" id="statLastSession">Never</span></div>
+</div>
+<button class="menu-btn" id="closeStatsBtn">CLOSE</button>
+<button class="menu-btn danger" id="deleteSaveBtn">DELETE SAVE</button>
+</div>
+</div>
+
 <!-- Question Panel -->
 <div class="overlay" id="qPanel">
 <div class="q-box">
@@ -228,16 +395,19 @@ pointer-events:none;z-index:600}
 <div class="q-text" id="qText"></div>
 <div class="q-opts" id="qOpts"></div>
 <div class="q-feedback" id="qFb"></div>
+<div class="q-explanation" id="qExplanation"></div>
 <button id="skipBtn">SKIP (10s)</button>
 <div class="skip-bar-wrap"><div class="skip-bar" id="skipBar" style="width:100%"></div></div>
 </div>
 </div>
+
 <!-- Year Complete -->
 <div class="overlay" id="yearComp">
 <div class="yc-title" id="ycTitle">YEAR 1 COMPLETE!</div>
 <div class="yc-text" id="ycText"></div>
 <button class="yc-btn" id="nextYrBtn">CONTINUE</button>
 </div>
+
 <!-- Certificate -->
 <div class="overlay" id="certScreen">
 <div class="cert-wrap">
@@ -258,11 +428,21 @@ Having successfully completed seven years of rigorous medical education encompas
 <div class="cert-sig"><div class="cert-sig-line"></div><div class="cert-sig-title" id="sigReg">MEDICAL REGISTRAR</div></div>
 </div>
 <div class="cert-btns">
-<button class="c-btn dl" id="dlBtn">SAVE CERTIFICATE</button>
-<button class="c-btn" id="playAgainBtn">PLAY AGAIN</button>
+<button class="c-btn dl" id="dlBtn">💾 SAVE CERTIFICATE</button>
+<button class="c-btn" id="playAgainBtn">🔄 PLAY AGAIN</button>
 </div>
 </div>
 </div>
+
+<!-- Achievement Popup -->
+<div class="achievement-popup" id="achPopup">
+<span class="ach-icon">🏆</span>
+<div class="ach-text">
+<div class="ach-title">ACHIEVEMENT UNLOCKED!</div>
+<div class="ach-desc" id="achDesc">First Steps</div>
+</div>
+</div>
+
 <!-- FULL SCREEN TOUCH CONTROLS -->
 <div id="touchOverlay">
 <div class="touch-zone" id="touchLeft">
@@ -275,86 +455,203 @@ Having successfully completed seven years of rigorous medical education encompas
 </div>
 </div>
 </div>
+
 <!-- Title Screen -->
 <div id="title">
 <div class="t-pre" id="tPre">MEDICAL SCHOOL SIMULATION</div>
 <h1 id="mainTitle">DOCTOR QUEST</h1>
 <div class="t-sub" id="tSub">7 YEARS · 7 LEVELS · 3 QUESTIONS EACH</div>
-<div class="t-btns">
-<button class="t-btn primary" id="startBtn">BEGIN MEDICAL SCHOOL</button>
-<button class="t-btn lang" id="langBtn">LANGUAGE: ENGLISH</button>
-<button class="t-btn" id="howBtn">HOW TO PLAY</button>
+
+<!-- Player Name Input -->
+<div class="name-input-wrap">
+<label for="playerNameInput">ENTER YOUR NAME</label>
+<input type="text" id="playerNameInput" placeholder="DR. YOUR NAME" maxlength="20">
 </div>
-<div id="credits">GRADUATES: <span id="gradCount">0</span></div>
+
+<div class="t-btns">
+<button class="t-btn primary" id="startBtn">🎓 BEGIN MEDICAL SCHOOL</button>
+<button class="t-btn continue" id="continueBtn" style="display:none">📂 CONTINUE PROGRESS</button>
+<button class="t-btn lang" id="langBtn">🌐 LANGUAGE: ENGLISH</button>
+<button class="t-btn stats" id="statsBtnMain">📊 VIEW STATS</button>
+<button class="t-btn" id="howBtn">❓ HOW TO PLAY</button>
+</div>
+
+<!-- Save Info Display -->
+<div id="saveInfo"></div>
+
+<div id="credits">🎓 GRADUATES: <span id="gradCount">0</span> | 🏆 BEST SCORE: <span id="bestScore">0</span></div>
 </div>
 <div id="scanlines"></div>
+
 <script>
 // ============================================================
-// COMPREHENSIVE MEDICAL QUESTION DATABASE (bilingual, 7 years)
+// COMPREHENSIVE MEDICAL QUESTION DATABASE WITH EXPLANATIONS
 // ============================================================
 const DB = {
 year1:{
 label:{en:"YEAR 1 — ANATOMY & PHYSIOLOGY",fr:"ANNÉE 1 — ANATOMIE & PHYSIOLOGIE"},
 qs:[
-{en:"What is the largest organ in the human body?",fr:"Quel est le plus grand organe du corps humain ?",a:{en:["Skin","Liver","Heart","Lung"],fr:["Peau","Foie","Cœur","Poumon"]},ca:0},
-{en:"How many bones are in the adult human body?",fr:"Combien d'os y a-t-il dans le corps humain adulte ?",a:{en:["206","300","172","250"],fr:["206","300","172","250"]},ca:0},
-{en:"Which blood type is the universal donor?",fr:"Quel groupe sanguin est le donneur universel ?",a:{en:["O-","A+","B-","AB+"],fr:["O-","A+","B-","AB+"]},ca:0},
-{en:"What is the normal resting heart rate for adults?",fr:"Quelle est la fréquence cardiaque normale au repos ?",a:{en:["60-100 bpm","40-60 bpm","110-130 bpm","80-150 bpm"],fr:["60-100 bpm","40-60 bpm","110-130 bpm","80-150 bpm"]},ca:0},
-{en:"Which organ produces insulin?",fr:"Quel organe produit l'insuline ?",a:{en:["Pancreas","Liver","Kidney","Spleen"],fr:["Pancréas","Foie","Rein","Rate"]},ca:0},
-{en:"What is the longest bone in the human body?",fr:"Quel est l'os le plus long du corps humain ?",a:{en:["Femur","Tibia","Fibula","Humerus"],fr:["Fémur","Tibia","Fibula","Humérus"]},ca:0},
-{en:"How many chambers does the human heart have?",fr:"Combien de cavités a le cœur humain ?",a:{en:["4","2","3","6"],fr:["4","2","3","6"]},ca:0},
-{en:"What is the functional unit of the kidney?",fr:"Quelle est l'unité fonctionnelle du rein ?",a:{en:["Nephron","Neuron","Alveolus","Hepatocyte"],fr:["Néphron","Neurone","Alvéole","Hépatocyte"]},ca:0},
-{en:"Which gas do red blood cells primarily carry?",fr:"Quel gaz les globules rouges transportent-ils principalement ?",a:{en:["Oxygen","Carbon dioxide","Nitrogen","Argon"],fr:["Oxygène","Dioxyde de carbone","Azote","Argon"]},ca:0},
-{en:"What is the term for the double membrane surrounding the heart?",fr:"Quel est le terme pour la double membrane entourant le cœur ?",a:{en:["Pericardium","Pleura","Peritoneum","Dura mater"],fr:["Péricarde","Plèvre","Péritoine","Dure-mère"]},ca:0},
-{en:"What protein carries oxygen in red blood cells?",fr:"Quelle protéine transporte l'oxygène dans les globules rouges ?",a:{en:["Hemoglobin","Albumin","Fibrinogen","Myosin"],fr:["Hémoglobine","Albumine","Fibrinogène","Myosine"]},ca:0},
-{en:"Which part of the brain controls breathing?",fr:"Quelle partie du cerveau contrôle la respiration ?",a:{en:["Medulla oblongata","Cerebellum","Cerebrum","Thalamus"],fr:["Bulbe rachidien","Cervelet","Cerveau","Thalamus"]},ca:0},
-{en:"How many pairs of cranial nerves exist?",fr:"Combien de paires de nerfs crâniens existent-ils ?",a:{en:["12","10","8","14"],fr:["12","10","8","14"]},ca:0},
-{en:"What is the name of the protein in muscle that causes contraction?",fr:"Comment s'appelle la protéine musculaire qui provoque la contraction ?",a:{en:["Actin & myosin","Collagen","Keratin","Elastin"],fr:["Actine & myosine","Collagène","Kératine","Élastine"]},ca:0},
-{en:"Which structure connects muscle to bone?",fr:"Quelle structure relie le muscle à l'os ?",a:{en:["Tendon","Ligament","Cartilage","Fascia"],fr:["Tendon","Ligament","Cartilage","Fascia"]},ca:0},
-{en:"What is the term for the fluid surrounding the brain and spinal cord?",fr:"Quel est le terme pour le liquide entourant le cerveau et la moelle épinière ?",a:{en:["Cerebrospinal fluid","Lymph","Synovial fluid","Aqueous humor"],fr:["Liquide céphalorachidien","Lymphe","Liquide synovial","Humeur aqueuse"]},ca:0},
-{en:"Which organ produces bile?",fr:"Quel organe produit la bile ?",a:{en:["Liver","Gallbladder","Pancreas","Duodenum"],fr:["Foie","Vésicule biliaire","Pancréas","Duodénum"]},ca:0},
-{en:"How many lobes does the right lung have?",fr:"Combien de lobes le poumon droit a-t-il ?",a:{en:["3","2","4","1"],fr:["3","2","4","1"]},ca:0},
-{en:"What is the normal adult respiratory rate?",fr:"Quelle est la fréquence respiratoire normale d'un adulte ?",a:{en:["12-20 per min","5-10 per min","25-35 per min","40-50 per min"],fr:["12-20 par min","5-10 par min","25-35 par min","40-50 par min"]},ca:0},
-{en:"Which vitamin is produced by the skin under sunlight?",fr:"Quelle vitamine est produite par la peau sous le soleil ?",a:{en:["Vitamin D","Vitamin C","Vitamin A","Vitamin K"],fr:["Vitamine D","Vitamine C","Vitamine A","Vitamine K"]},ca:0},
-{en:"What is the smallest unit of life?",fr:"Quelle est la plus petite unité de vie ?",a:{en:["Cell","Organ","Tissue","Molecule"],fr:["Cellule","Organe","Tissu","Molécule"]},ca:0},
-{en:"Which blood vessels carry blood AWAY from the heart?",fr:"Quels vaisseaux sanguins transportent le sang loin du cœur ?",a:{en:["Arteries","Veins","Capillaries","Lymphatics"],fr:["Artères","Veines","Capillaires","Vaisseaux lymphatiques"]},ca:0},
-{en:"What is the normal blood pressure reading for adults?",fr:"Quelle est la tension artérielle normale d'un adulte ?",a:{en:["120/80 mmHg","160/100 mmHg","90/60 mmHg","140/90 mmHg"],fr:["120/80 mmHg","160/100 mmHg","90/60 mmHg","140/90 mmHg"]},ca:0},
-{en:"Which part of a neuron receives signals?",fr:"Quelle partie d'un neurone reçoit les signaux ?",a:{en:["Dendrite","Axon","Myelin sheath","Node of Ranvier"],fr:["Dendrite","Axone","Gaine de myéline","Nœud de Ranvier"]},ca:0},
-{en:"What is the pH of normal human blood?",fr:"Quel est le pH du sang humain normal ?",a:{en:["7.35-7.45","6.8-7.2","7.5-8.0","7.0-7.3"],fr:["7.35-7.45","6.8-7.2","7.5-8.0","7.0-7.3"]},ca:0},
+{en:"What is the largest organ in the human body?",fr:"Quel est le plus grand organe du corps humain ?",a:{en:["Skin","Liver","Heart","Lung"],fr:["Peau","Foie","Cœur","Poumon"]},ca:0,exp:{en:"The skin covers about 20 square feet in adults.",fr:"La peau couvre environ 2 mètres carrés chez l'adulte."}},
+{en:"How many bones are in the adult human body?",fr:"Combien d'os y a-t-il dans le corps humain adulte ?",a:{en:["206","300","172","250"],fr:["206","300","172","250"]},ca:0,exp:{en:"Babies have ~270 bones that fuse to 206 in adults.",fr:"Les bébés ont ~270 os qui fusionnent à 206 chez l'adulte."}},
+{en:"Which blood type is the universal donor?",fr:"Quel groupe sanguin est le donneur universel ?",a:{en:["O-","A+","B-","AB+"],fr:["O-","A+","B-","AB+"]},ca:0,exp:{en:"O- blood can be given to anyone regardless of blood type.",fr:"Le sang O- peut être donné à n'importe qui."}},
+{en:"What is the normal resting heart rate for adults?",fr:"Quelle est la fréquence cardiaque normale au repos ?",a:{en:["60-100 bpm","40-60 bpm","110-130 bpm","80-150 bpm"],fr:["60-100 bpm","40-60 bpm","110-130 bpm","80-150 bpm"]},ca:0,exp:{en:"Normal resting heart rate is 60-100 beats per minute.",fr:"La fréquence normale au repos est de 60-100 bpm."}},
+{en:"Which organ produces insulin?",fr:"Quel organe produit l'insuline ?",a:{en:["Pancreas","Liver","Kidney","Spleen"],fr:["Pancréas","Foie","Rein","Rate"]},ca:0,exp:{en:"Insulin is produced in the Islets of Langerhans.",fr:"L'insuline est produite dans les îlots de Langerhans."}},
+{en:"What is the longest bone in the human body?",fr:"Quel est l'os le plus long du corps humain ?",a:{en:["Femur","Tibia","Fibula","Humerus"],fr:["Fémur","Tibia","Fibula","Humérus"]},ca:0,exp:{en:"The femur is the longest and strongest bone.",fr:"Le fémur est l'os le plus long et le plus solide."}},
+{en:"How many chambers does the human heart have?",fr:"Combien de cavités a le cœur humain ?",a:{en:["4","2","3","6"],fr:["4","2","3","6"]},ca:0,exp:{en:"2 atria and 2 ventricles make 4 chambers.",fr:"2 oreillettes et 2 ventricules font 4 cavités."}},
+{en:"What is the functional unit of the kidney?",fr:"Quelle est l'unité fonctionnelle du rein ?",a:{en:["Nephron","Neuron","Alveolus","Hepatocyte"],fr:["Néphron","Neurone","Alvéole","Hépatocyte"]},ca:0,exp:{en:"Each kidney contains about 1 million nephrons.",fr:"Chaque rein contient environ 1 million de néphrons."}},
+{en:"Which gas do red blood cells primarily carry?",fr:"Quel gaz les globules rouges transportent-ils principalement ?",a:{en:["Oxygen","Carbon dioxide","Nitrogen","Argon"],fr:["Oxygène","Dioxyde de carbone","Azote","Argon"]},ca:0,exp:{en:"RBCs carry oxygen via hemoglobin.",fr:"Les GR transportent l'oxygène via l'hémoglobine."}},
+{en:"What is the term for the membrane surrounding the heart?",fr:"Quel est le terme pour la membrane entourant le cœur ?",a:{en:["Pericardium","Pleura","Peritoneum","Dura mater"],fr:["Péricarde","Plèvre","Péritoine","Dure-mère"]},ca:0,exp:{en:"The pericardium protects and anchors the heart.",fr:"Le péricarde protège et ancre le cœur."}},
+{en:"What protein carries oxygen in red blood cells?",fr:"Quelle protéine transporte l'oxygène dans les globules rouges ?",a:{en:["Hemoglobin","Albumin","Fibrinogen","Myosin"],fr:["Hémoglobine","Albumine","Fibrinogène","Myosine"]},ca:0,exp:{en:"Hemoglobin binds oxygen and gives blood its red color.",fr:"L'hémoglobine lie l'oxygène et donne sa couleur rouge."}},
+{en:"Which part of the brain controls breathing?",fr:"Quelle partie du cerveau contrôle la respiration ?",a:{en:["Medulla oblongata","Cerebellum","Cerebrum","Thalamus"],fr:["Bulbe rachidien","Cervelet","Cerveau","Thalamus"]},ca:0,exp:{en:"The medulla controls automatic functions like breathing.",fr:"Le bulbe contrôle les fonctions automatiques."}},
+{en:"How many pairs of cranial nerves exist?",fr:"Combien de paires de nerfs crâniens existent-ils ?",a:{en:["12","10","8","14"],fr:["12","10","8","14"]},ca:0,exp:{en:"There are 12 pairs of cranial nerves.",fr:"Il y a 12 paires de nerfs crâniens."}},
+{en:"What connects muscle to bone?",fr:"Quelle structure relie le muscle à l'os ?",a:{en:["Tendon","Ligament","Cartilage","Fascia"],fr:["Tendon","Ligament","Cartilage","Fascia"]},ca:0,exp:{en:"Tendons connect muscle to bone; ligaments connect bone to bone.",fr:"Les tendons relient muscle à os."}},
+{en:"What fluid surrounds the brain and spinal cord?",fr:"Quel liquide entoure le cerveau et la moelle épinière ?",a:{en:["Cerebrospinal fluid","Lymph","Synovial fluid","Aqueous humor"],fr:["Liquide céphalorachidien","Lymphe","Liquide synovial","Humeur aqueuse"]},ca:0,exp:{en:"CSF cushions the CNS and removes waste.",fr:"Le LCR protège le SNC et élimine les déchets."}},
+{en:"Which organ produces bile?",fr:"Quel organe produit la bile ?",a:{en:["Liver","Gallbladder","Pancreas","Duodenum"],fr:["Foie","Vésicule biliaire","Pancréas","Duodénum"]},ca:0,exp:{en:"The liver produces bile; gallbladder stores it.",fr:"Le foie produit la bile ; la vésicule la stocke."}},
+{en:"How many lobes does the right lung have?",fr:"Combien de lobes le poumon droit a-t-il ?",a:{en:["3","2","4","1"],fr:["3","2","4","1"]},ca:0,exp:{en:"Right lung has 3 lobes; left has 2 (space for heart).",fr:"Le poumon droit a 3 lobes ; le gauche en a 2."}},
+{en:"What is the normal adult respiratory rate?",fr:"Quelle est la fréquence respiratoire normale d'un adulte ?",a:{en:["12-20 per min","5-10 per min","25-35 per min","40-50 per min"],fr:["12-20 par min","5-10 par min","25-35 par min","40-50 par min"]},ca:0,exp:{en:"Normal is 12-20 breaths per minute at rest.",fr:"La normale est 12-20 respirations par minute."}},
+{en:"Which vitamin is produced by skin under sunlight?",fr:"Quelle vitamine est produite par la peau sous le soleil ?",a:{en:["Vitamin D","Vitamin C","Vitamin A","Vitamin K"],fr:["Vitamine D","Vitamine C","Vitamine A","Vitamine K"]},ca:0,exp:{en:"UV rays convert 7-dehydrocholesterol to Vitamin D3.",fr:"Les UV convertissent en vitamine D3."}},
+{en:"What is the smallest unit of life?",fr:"Quelle est la plus petite unité de vie ?",a:{en:["Cell","Organ","Tissue","Molecule"],fr:["Cellule","Organe","Tissu","Molécule"]},ca:0,exp:{en:"The cell is the basic unit of life.",fr:"La cellule est l'unité de base de la vie."}},
+{en:"Which vessels carry blood AWAY from the heart?",fr:"Quels vaisseaux transportent le sang loin du cœur ?",a:{en:["Arteries","Veins","Capillaries","Lymphatics"],fr:["Artères","Veines","Capillaires","Vaisseaux lymphatiques"]},ca:0,exp:{en:"Arteries carry blood away; veins return it.",fr:"Les artères éloignent ; les veines ramènent."}},
+{en:"What is normal blood pressure for adults?",fr:"Quelle est la tension artérielle normale d'un adulte ?",a:{en:["120/80 mmHg","160/100 mmHg","90/60 mmHg","140/90 mmHg"],fr:["120/80 mmHg","160/100 mmHg","90/60 mmHg","140/90 mmHg"]},ca:0,exp:{en:"Normal BP is around 120/80 mmHg.",fr:"La TA normale est environ 120/80 mmHg."}},
+{en:"Which part of a neuron receives signals?",fr:"Quelle partie d'un neurone reçoit les signaux ?",a:{en:["Dendrite","Axon","Myelin sheath","Node of Ranvier"],fr:["Dendrite","Axone","Gaine de myéline","Nœud de Ranvier"]},ca:0,exp:{en:"Dendrites receive; axons transmit signals.",fr:"Les dendrites reçoivent ; les axones transmettent."}},
+{en:"What is the pH of normal human blood?",fr:"Quel est le pH du sang humain normal ?",a:{en:["7.35-7.45","6.8-7.2","7.5-8.0","7.0-7.3"],fr:["7.35-7.45","6.8-7.2","7.5-8.0","7.0-7.3"]},ca:0,exp:{en:"Blood pH is tightly regulated at 7.35-7.45.",fr:"Le pH sanguin est régulé à 7.35-7.45."}},
+{en:"What is the main function of white blood cells?",fr:"Quelle est la fonction principale des globules blancs ?",a:{en:["Fight infection","Carry oxygen","Clot blood","Transport nutrients"],fr:["Combattre l'infection","Transporter l'oxygène","Coaguler le sang","Transporter les nutriments"]},ca:0,exp:{en:"WBCs are part of the immune system.",fr:"Les GB font partie du système immunitaire."}}
 ]
 },
-year2:{
-label:{en:"YEAR 2 — BIOCHEMISTRY & HISTOLOGY",fr:"ANNÉE 2 — BIOCHIMIE & HISTOLOGIE"},
-qs:[
-{en:"What is the powerhouse of the cell?",fr:"Quel est le moteur de la cellule ?",a:{en:["Mitochondria","Nucleus","Ribosome","Golgi apparatus"],fr:["Mitochondries","Noyau","Ribosome","Appareil de Golgi"]},ca:0},
-{en:"Which macromolecule carries genetic information?",fr:"Quelle macromolécule porte l'information génétique ?",a:{en:["DNA","RNA","Protein","Lipid"],fr:["ADN","ARN","Protéine","Lipide"]},ca:0},
-{en:"What is the first step of glycolysis?",fr:"Quelle est la première étape de la glycolyse ?",a:{en:["Glucose → Glucose-6-phosphate","Pyruvate → Acetyl-CoA","Fructose-6-P → Fructose-1,6-P","G3P → 1,3-BPG"],fr:["Glucose → Glucose-6-phosphate","Pyruvate → Acétyl-CoA","Fructose-6-P → Fructose-1,6-P","G3P → 1,3-BPG"]},ca:0},
-{en:"Which enzyme converts glucose to glucose-6-phosphate in the liver?",fr:"Quelle enzyme convertit le glucose en glucose-6-phosphate dans le foie ?",a:{en:["Glucokinase","Hexokinase","Phosphofructokinase","Aldolase"],fr:["Glucokinase","Hexokinase","Phosphofructokinase","Aldolase"]},ca:0},
-{en:"What is the end product of the Krebs cycle?",fr:"Quel est le produit final du cycle de Krebs ?",a:{en:["CO2, NADH, FADH2","Glucose","Pyruvate","Lactate"],fr:["CO2, NADH, FADH2","Glucose","Pyruvate","Lactate"]},ca:0},
-{en:"Which cells line the alveoli of the lungs?",fr:"Quelles cellules tapissent les alvéoles pulmonaires ?",a:{en:["Type I & II pneumocytes","Hepatocytes","Enterocytes","Keratinocytes"],fr:["Pneumocytes de type I & II","Hépatocytes","Entérocytes","Kératinocytes"]},ca:0},
-{en:"What is the enzyme that unwinds DNA for replication?",fr:"Quelle enzyme déroule l'ADN pour la réplication ?",a:{en:["Helicase","Polymerase","Ligase","Topoisomerase"],fr:["Hélicase","Polymérase","Ligase","Topoisomérase"]},ca:0},
-{en:"Which type of collagen is most abundant in skin?",fr:"Quel type de collagène est le plus abondant dans la peau ?",a:{en:["Type I","Type II","Type III","Type IV"],fr:["Type I","Type II","Type III","Type IV"]},ca:0},
-{en:"What is the main intracellular cation?",fr:"Quel est le principal cation intracellulaire ?",a:{en:["Potassium (K+)","Sodium (Na+)","Calcium (Ca2+)","Magnesium (Mg2+)"],fr:["Potassium (K+)","Sodium (Na+)","Calcium (Ca2+)","Magnésium (Mg2+)"]},ca:0},
-{en:"Which cells produce antibodies?",fr:"Quelles cellules produisent des anticorps ?",a:{en:["Plasma cells","T lymphocytes","NK cells","Macrophages"],fr:["Plasmocytes","Lymphocytes T","Cellules NK","Macrophages"]},ca:0},
-{en:"What type of tissue forms glands?",fr:"Quel type de tissu forme les glandes ?",a:{en:["Epithelial","Connective","Muscle","Nervous"],fr:["Épithélial","Conjonctif","Musculaire","Nerveux"]},ca:0},
-{en:"What is the role of smooth endoplasmic reticulum?",fr:"Quel est le rôle du réticulum endoplasmique lisse ?",a:{en:["Lipid synthesis","Protein synthesis","DNA replication","Mitosis"],fr:["Synthèse des lipides","Synthèse des protéines","Réplication de l'ADN","Mitose"]},ca:0},
-{en:"Which organelle packages and secretes proteins?",fr:"Quel organite emballe et sécrète des protéines ?",a:{en:["Golgi apparatus","Ribosome","Mitochondria","Lysosome"],fr:["Appareil de Golgi","Ribosome","Mitochondries","Lysosome"]},ca:0},
-{en:"What is the building block of proteins?",fr:"Quel est le composant de base des protéines ?",a:{en:["Amino acids","Nucleotides","Fatty acids","Monosaccharides"],fr:["Acides aminés","Nucléotides","Acides gras","Monosaccharides"]},ca:0},
-{en:"Which bond holds the DNA double helix together?",fr:"Quel type de liaison maintient la double hélice de l'ADN ?",a:{en:["Hydrogen bonds","Covalent bonds","Ionic bonds","Van der Waals"],fr:["Liaisons hydrogène","Liaisons covalentes","Liaisons ioniques","Forces de Van der Waals"]},ca:0},
-{en:"How many ATP molecules are produced by complete glucose oxidation?",fr:"Combien de molécules d'ATP la dégradation complète du glucose produit-elle ?",a:{en:["30-32 ATP","2 ATP","8 ATP","50 ATP"],fr:["30-32 ATP","2 ATP","8 ATP","50 ATP"]},ca:0},
-{en:"What is the primary role of albumin in the blood?",fr:"Quel est le rôle principal de l'albumine dans le sang ?",a:{en:["Maintain oncotic pressure","Carry oxygen","Clotting factor","Fight infection"],fr:["Maintenir la pression oncotique","Transporter l'oxygène","Facteur de coagulation","Lutter contre l'infection"]},ca:0},
-{en:"Which cells are the primary phagocytes of the CNS?",fr:"Quelles cellules sont les phagocytes primaires du SNC ?",a:{en:["Microglia","Astrocytes","Oligodendrocytes","Schwann cells"],fr:["Microglie","Astrocytes","Oligodendrocytes","Cellules de Schwann"]},ca:0},
-{en:"What is the process by which cells eat large particles?",fr:"Quel est le processus par lequel les cellules ingèrent de grandes particules ?",a:{en:["Phagocytosis","Pinocytosis","Exocytosis","Endocytosis"],fr:["Phagocytose","Pinocytose","Exocytose","Endocytose"]},ca:0},
-{en:"Which layer of skin contains melanocytes?",fr:"Quelle couche de peau contient les mélanocytes ?",a:{en:["Stratum basale","Stratum corneum","Stratum granulosum","Stratum spinosum"],fr:["Stratum basale","Stratum corneum","Stratum granulosum","Stratum spinosum"]},ca:0},
-]
-},
-// Years 3-7 follow the same bilingual pattern (truncated for brevity)
-year3:{label:{en:"YEAR 3 — PATHOLOGY & MICROBIOLOGY",fr:"ANNÉE 3 — PATHOLOGIE & MICROBIOLOGIE"},qs:[/* 20 questions */]},
-year4:{label:{en:"YEAR 4 — PHARMACOLOGY & DIAGNOSTICS",fr:"ANNÉE 4 — PHARMACOLOGIE & DIAGNOSTIC"},qs:[/* 20 questions */]},
-year5:{label:{en:"YEAR 5 — INTERNAL MEDICINE",fr:"ANNÉE 5 — MÉDECINE INTERNE"},qs:[/* 20 questions */]},
-year6:{label:{en:"YEAR 6 — SURGERY & SPECIALTIES",fr:"ANNÉE 6 — CHIRURGIE & SPÉCIALITÉS"},qs:[/* 20 questions */]},
-year7:{label:{en:"YEAR 7 — CLINICAL MEDICINE & EMERGENCY",fr:"ANNÉE 7 — MÉDECINE CLINIQUE & URGENCES"},qs:[/* 20 questions */]}
+year2:{label:{en:"YEAR 2 — BIOCHEMISTRY & HISTOLOGY",fr:"ANNÉE 2 — BIOCHIMIE & HISTOLOGIE"},qs:[
+{en:"What is the powerhouse of the cell?",fr:"Quel est le moteur de la cellule ?",a:{en:["Mitochondria","Nucleus","Ribosome","Golgi apparatus"],fr:["Mitochondries","Noyau","Ribosome","Appareil de Golgi"]},ca:0,exp:{en:"Mitochondria produce ATP through cellular respiration.",fr:"Les mitochondries produisent l'ATP."}},
+{en:"Which macromolecule carries genetic information?",fr:"Quelle macromolécule porte l'information génétique ?",a:{en:["DNA","RNA","Protein","Lipid"],fr:["ADN","ARN","Protéine","Lipide"]},ca:0,exp:{en:"DNA stores genetic information in the nucleus.",fr:"L'ADN stocke l'information génétique."}},
+{en:"What is the first step of glycolysis?",fr:"Quelle est la première étape de la glycolyse ?",a:{en:["Glucose → Glucose-6-phosphate","Pyruvate → Acetyl-CoA","Fructose-6-P → Fructose-1,6-P","G3P → 1,3-BPG"],fr:["Glucose → Glucose-6-phosphate","Pyruvate → Acétyl-CoA","Fructose-6-P → Fructose-1,6-P","G3P → 1,3-BPG"]},ca:0,exp:{en:"Hexokinase phosphorylates glucose.",fr:"L'hexokinase phosphoryle le glucose."}},
+{en:"Which enzyme converts glucose in the liver?",fr:"Quelle enzyme convertit le glucose dans le foie ?",a:{en:["Glucokinase","Hexokinase","Phosphofructokinase","Aldolase"],fr:["Glucokinase","Hexokinase","Phosphofructokinase","Aldolase"]},ca:0,exp:{en:"Glucokinase is liver-specific.",fr:"La glucokinase est spécifique au foie."}},
+{en:"What is the end product of the Krebs cycle?",fr:"Quel est le produit final du cycle de Krebs ?",a:{en:["CO2, NADH, FADH2","Glucose","Pyruvate","Lactate"],fr:["CO2, NADH, FADH2","Glucose","Pyruvate","Lactate"]},ca:0,exp:{en:"Krebs produces CO2, NADH, FADH2 for ETC.",fr:"Le cycle de Krebs produit CO2, NADH, FADH2."}},
+{en:"Which cells line the alveoli?",fr:"Quelles cellules tapissent les alvéoles ?",a:{en:["Type I & II pneumocytes","Hepatocytes","Enterocytes","Keratinocytes"],fr:["Pneumocytes de type I & II","Hépatocytes","Entérocytes","Kératinocytes"]},ca:0,exp:{en:"Type I for gas exchange, Type II produce surfactant.",fr:"Type I pour échanges, Type II produisent surfactant."}},
+{en:"What enzyme unwinds DNA for replication?",fr:"Quelle enzyme déroule l'ADN pour la réplication ?",a:{en:["Helicase","Polymerase","Ligase","Topoisomerase"],fr:["Hélicase","Polymérase","Ligase","Topoisomérase"]},ca:0,exp:{en:"Helicase unwinds DNA at replication forks.",fr:"L'hélicase déroule l'ADN."}},
+{en:"Which collagen type is most abundant in skin?",fr:"Quel type de collagène est le plus abondant dans la peau ?",a:{en:["Type I","Type II","Type III","Type IV"],fr:["Type I","Type II","Type III","Type IV"]},ca:0,exp:{en:"Type I collagen makes up 90% of skin.",fr:"Le collagène type I représente 90%."}},
+{en:"What is the main intracellular cation?",fr:"Quel est le principal cation intracellulaire ?",a:{en:["Potassium (K+)","Sodium (Na+)","Calcium (Ca2+)","Magnesium (Mg2+)"],fr:["Potassium (K+)","Sodium (Na+)","Calcium (Ca2+)","Magnésium (Mg2+)"]},ca:0,exp:{en:"K+ is high inside; Na+ is high outside.",fr:"K+ est élevé dedans ; Na+ dehors."}},
+{en:"Which cells produce antibodies?",fr:"Quelles cellules produisent des anticorps ?",a:{en:["Plasma cells","T lymphocytes","NK cells","Macrophages"],fr:["Plasmocytes","Lymphocytes T","Cellules NK","Macrophages"]},ca:0,exp:{en:"Plasma cells are differentiated B cells.",fr:"Les plasmocytes sont des lymphocytes B différenciés."}},
+{en:"What tissue type forms glands?",fr:"Quel type de tissu forme les glandes ?",a:{en:["Epithelial","Connective","Muscle","Nervous"],fr:["Épithélial","Conjonctif","Musculaire","Nerveux"]},ca:0,exp:{en:"Epithelial tissue forms glands.",fr:"Le tissu épithélial forme les glandes."}},
+{en:"What is the role of smooth ER?",fr:"Quel est le rôle du réticulum endoplasmique lisse ?",a:{en:["Lipid synthesis","Protein synthesis","DNA replication","Mitosis"],fr:["Synthèse des lipides","Synthèse des protéines","Réplication de l'ADN","Mitose"]},ca:0,exp:{en:"Smooth ER synthesizes lipids and detoxifies.",fr:"Le REL synthétise les lipides."}},
+{en:"Which organelle packages proteins?",fr:"Quel organite emballe les protéines ?",a:{en:["Golgi apparatus","Ribosome","Mitochondria","Lysosome"],fr:["Appareil de Golgi","Ribosome","Mitochondries","Lysosome"]},ca:0,exp:{en:"Golgi modifies and packages proteins.",fr:"L'appareil de Golgi emballe les protéines."}},
+{en:"What is the building block of proteins?",fr:"Quel est le composant de base des protéines ?",a:{en:["Amino acids","Nucleotides","Fatty acids","Monosaccharides"],fr:["Acides aminés","Nucléotides","Acides gras","Monosaccharides"]},ca:0,exp:{en:"20 amino acids form all proteins.",fr:"20 acides aminés forment toutes les protéines."}},
+{en:"Which bond holds DNA double helix?",fr:"Quel type de liaison maintient la double hélice de l'ADN ?",a:{en:["Hydrogen bonds","Covalent bonds","Ionic bonds","Van der Waals"],fr:["Liaisons hydrogène","Liaisons covalentes","Liaisons ioniques","Forces de Van der Waals"]},ca:0,exp:{en:"Hydrogen bonds between base pairs.",fr:"Liaisons H entre paires de bases."}},
+{en:"How many ATP from glucose oxidation?",fr:"Combien d'ATP de l'oxydation du glucose ?",a:{en:["30-32 ATP","2 ATP","8 ATP","50 ATP"],fr:["30-32 ATP","2 ATP","8 ATP","50 ATP"]},ca:0,exp:{en:"Complete oxidation yields 30-32 ATP.",fr:"L'oxydation complète produit 30-32 ATP."}},
+{en:"What is albumin's primary role?",fr:"Quel est le rôle principal de l'albumine ?",a:{en:["Maintain oncotic pressure","Carry oxygen","Clotting factor","Fight infection"],fr:["Maintenir la pression oncotique","Transporter l'oxygène","Facteur de coagulation","Lutter contre l'infection"]},ca:0,exp:{en:"Albumin maintains blood oncotic pressure.",fr:"L'albumine maintient la pression oncotique."}},
+{en:"Which cells are CNS phagocytes?",fr:"Quelles cellules sont les phagocytes du SNC ?",a:{en:["Microglia","Astrocytes","Oligodendrocytes","Schwann cells"],fr:["Microglie","Astrocytes","Oligodendrocytes","Cellules de Schwann"]},ca:0,exp:{en:"Microglia are resident macrophages of CNS.",fr:"La microglie sont les macrophages du SNC."}},
+{en:"What process do cells use to eat particles?",fr:"Quel processus les cellules utilisent pour ingérer ?",a:{en:["Phagocytosis","Pinocytosis","Exocytosis","Endocytosis"],fr:["Phagocytose","Pinocytose","Exocytose","Endocytose"]},ca:0,exp:{en:"Phagocytosis engulfs large particles.",fr:"La phagocytose ingère de grandes particules."}},
+{en:"Which skin layer contains melanocytes?",fr:"Quelle couche de peau contient les mélanocytes ?",a:{en:["Stratum basale","Stratum corneum","Stratum granulosum","Stratum spinosum"],fr:["Stratum basale","Stratum corneum","Stratum granulosum","Stratum spinosum"]},ca:0,exp:{en:"Melanocytes produce melanin in stratum basale.",fr:"Les mélanocytes produisent la mélanine."}}
+]},
+year3:{label:{en:"YEAR 3 — PATHOLOGY & MICROBIOLOGY",fr:"ANNÉE 3 — PATHOLOGIE & MICROBIOLOGIE"},qs:[
+{en:"What causes community-acquired pneumonia?",fr:"Quelle est la cause de la pneumonie communautaire ?",a:{en:["Streptococcus pneumoniae","E. coli","Staphylococcus aureus","Klebsiella"],fr:["Streptocoque pneumoniae","E. coli","Staphylocoque doré","Klebsiella"]},ca:0,exp:{en:"S. pneumoniae is the most common cause of CAP.",fr:"S. pneumoniae est la cause la plus fréquente."}},
+{en:"Which bacterium causes tuberculosis?",fr:"Quelle bactérie cause la tuberculose ?",a:{en:["Mycobacterium tuberculosis","Streptococcus","E. coli","Salmonella"],fr:["Mycobacterium tuberculosis","Streptocoque","E. coli","Salmonelle"]},ca:0,exp:{en:"M. tuberculosis is an acid-fast bacillus.",fr:"M. tuberculosis est un bacille acido-alcoolo-résistant."}},
+{en:"What cell marks chronic inflammation?",fr:"Quelle cellule marque l'inflammation chronique ?",a:{en:["Macrophage","Neutrophil","Eosinophil","Basophil"],fr:["Macrophage","Neutrophile","Éosinophile","Basophile"]},ca:0,exp:{en:"Macrophages dominate chronic inflammation.",fr:"Les macrophages dominent l'inflammation chronique."}},
+{en:"Which virus causes AIDS?",fr:"Quel virus cause le SIDA ?",a:{en:["HIV","HPV","HBV","HSV"],fr:["VIH","VPH","VHB","VHS"]},ca:0,exp:{en:"HIV destroys CD4+ T cells.",fr:"Le VIH détruit les lymphocytes T CD4+."}},
+{en:"What necrosis occurs in MI?",fr:"Quelle nécrose survient dans l'infarctus ?",a:{en:["Coagulative","Liquefactive","Caseous","Fat"],fr:["Coagulante","Liquéfiante","Caséeuse","Graisseuse"]},ca:0,exp:{en:"Coagulative necrosis is typical of ischemic injury.",fr:"La nécrose coagulante est typique de l'ischémie."}},
+{en:"Which organism causes malaria?",fr:"Quel organisme cause le paludisme ?",a:{en:["Plasmodium","Trypanosoma","Leishmania","Giardia"],fr:["Plasmodium","Trypanosoma","Leishmania","Giardia"]},ca:0,exp:{en:"Plasmodium is transmitted by Anopheles mosquitoes.",fr:"Plasmodium est transmis par les moustiques."}},
+{en:"What is the most common skin cancer?",fr:"Quel est le cancer de la peau le plus courant ?",a:{en:["Basal cell carcinoma","Melanoma","Squamous cell","Merkel cell"],fr:["Carcinome basocellulaire","Mélanome","Carcinome épidermoïde","Cellule de Merkel"]},ca:0,exp:{en:"BCC is most common but least likely to metastasize.",fr:"Le CBC est le plus courant."}},
+{en:"Which antibody is produced first?",fr:"Quel anticorps est produit en premier ?",a:{en:["IgM","IgG","IgA","IgE"],fr:["IgM","IgG","IgA","IgE"]},ca:0,exp:{en:"IgM is first in primary immune response.",fr:"L'IgM est le premier de la réponse primaire."}},
+{en:"What is cancer spread called?",fr:"Comment appelle-t-on la propagation du cancer ?",a:{en:["Metastasis","Invasion","Hyperplasia","Dysplasia"],fr:["Métastase","Invasion","Hyperplasie","Dysplasie"]},ca:0,exp:{en:"Metastasis is spread via blood/lymph.",fr:"La métastase est la propagation à distance."}},
+{en:"Which bacteria is gram-positive?",fr:"Quelle bactérie est gram-positive ?",a:{en:["Staphylococcus","E. coli","Salmonella","Pseudomonas"],fr:["Staphylocoque","E. coli","Salmonelle","Pseudomonas"]},ca:0,exp:{en:"Staphylococcus retains crystal violet.",fr:"Staphylococcus retient le cristal violet."}},
+{en:"What is HIV's primary target?",fr:"Quelle est la cible principale du VIH ?",a:{en:["CD4+ T cells","B cells","Neutrophils","RBCs"],fr:["Lymphocytes T CD4+","Lymphocytes B","Neutrophiles","GR"]},ca:0,exp:{en:"HIV binds to CD4 receptor on helper T cells.",fr:"Le VIH se lie au récepteur CD4."}},
+{en:"What type is anaphylaxis?",fr:"Quel type d'hypersensibilité est l'anaphylaxie ?",a:{en:["Type I","Type II","Type III","Type IV"],fr:["Type I","Type II","Type III","Type IV"]},ca:0,exp:{en:"Type I is IgE-mediated immediate hypersensitivity.",fr:"Le type I est l'hypersensibilité immédiate."}},
+{en:"What causes syphilis?",fr:"Quel organisme cause la syphilis ?",a:{en:["Treponema pallidum","Neisseria","Chlamydia","Gonorrhea"],fr:["Treponema pallidum","Neisseria","Chlamydia","Gonorrhée"]},ca:0,exp:{en:"T. pallidum is a spirochete bacterium.",fr:"T. pallidum est une bactérie spirochète."}},
+{en:"Which cell rises in bacterial infection?",fr:"Quelle cellule augmente dans l'infection bactérienne ?",a:{en:["Neutrophils","Lymphocytes","Eosinophils","Monocytes"],fr:["Neutrophiles","Lymphocytes","Éosinophiles","Monocytes"]},ca:0,exp:{en:"Neutrophilia indicates acute bacterial infection.",fr:"La neutrophilie indique une infection bactérienne."}},
+{en:"What causes most UTIs?",fr:"Quelle est la cause des infections urinaires ?",a:{en:["E. coli","Staphylococcus","Streptococcus","Klebsiella"],fr:["E. coli","Staphylocoque","Streptocoque","Klebsiella"]},ca:0,exp:{en:"E. coli from GI tract causes 80%+ of UTIs.",fr:"E. coli cause 80%+ des IU."}},
+{en:"Which virus causes chickenpox?",fr:"Quel virus cause la varicelle ?",a:{en:["Varicella-zoster","Influenza","Measles","Mumps"],fr:["Varicelle-zona","Influenza","Rougeole","Oreillons"]},ca:0,exp:{en:"VZV causes chickenpox; can reactivate as shingles.",fr:"Le VZV cause la varicelle."}},
+{en:"What is programmed cell death?",fr:"Qu'est-ce que la mort cellulaire programmée ?",a:{en:["Apoptosis","Necrosis","Autophagy","Senescence"],fr:["Apoptose","Nécrose","Autophagie","Sénescence"]},ca:0,exp:{en:"Apoptosis is controlled cell death.",fr:"L'apoptose est une mort cellulaire contrôlée."}},
+{en:"Which fungus causes thrush?",fr:"Quel champignon cause le muguet ?",a:{en:["Candida albicans","Aspergillus","Cryptococcus","Histoplasma"],fr:["Candida albicans","Aspergillus","Cryptococcus","Histoplasma"]},ca:0,exp:{en:"C. albicans is normal flora that can overgrow.",fr:"C. albicans est une flore normale."}},
+{en:"What is rabies incubation?",fr:"Quelle est la période d'incubation de la rage ?",a:{en:["1-3 months","1-3 days","1-3 weeks","1-3 years"],fr:["1-3 mois","1-3 jours","1-3 semaines","1-3 ans"]},ca:0,exp:{en:"Rabies incubation is typically 1-3 months.",fr:"L'incubation de la rage est 1-3 mois."}},
+{en:"What causes peptic ulcers?",fr:"Quelle bactérie cause les ulcères peptiques ?",a:{en:["Helicobacter pylori","E. coli","Salmonella","Shigella"],fr:["Helicobacter pylori","E. coli","Salmonelle","Shigella"]},ca:0,exp:{en:"H. pylori survives stomach acid.",fr:"H. pylori survit à l'acide gastrique."}}
+]},
+year4:{label:{en:"YEAR 4 — PHARMACOLOGY & DIAGNOSTICS",fr:"ANNÉE 4 — PHARMACOLOGIE & DIAGNOSTIC"},qs:[
+{en:"What is aspirin's mechanism?",fr:"Quel est le mécanisme de l'aspirine ?",a:{en:["COX inhibitor","ACE inhibitor","Beta blocker","Calcium channel blocker"],fr:["Inhibiteur COX","Inhibiteur ACE","Bêta-bloquant","Bloqueur calcique"]},ca:0,exp:{en:"Aspirin irreversibly inhibits COX-1 and COX-2.",fr:"L'aspirine inhibe COX-1 et COX-2."}},
+{en:"What treats hypertension?",fr:"Quel médicament traite l'hypertension ?",a:{en:["ACE inhibitors","Antibiotics","Antivirals","Antifungals"],fr:["Inhibiteurs ACE","Antibiotiques","Antiviraux","Antifongiques"]},ca:0,exp:{en:"ACE inhibitors reduce angiotensin II.",fr:"Les IEC réduisent l'angiotensine II."}},
+{en:"What reverses warfarin?",fr:"Quel est l'antidote de la warfarine ?",a:{en:["Vitamin K","Protamine sulfate","Naloxone","Flumazenil"],fr:["Vitamine K","Sulfate de protamine","Naloxone","Flumazénil"]},ca:0,exp:{en:"Vitamin K reverses warfarin's effect.",fr:"La vitamine K inverse la warfarine."}},
+{en:"What treats anaphylaxis?",fr:"Quel médicament traite l'anaphylaxie ?",a:{en:["Epinephrine","Insulin","Morphine","Atropine"],fr:["Épinéphrine","Insuline","Morphine","Atropine"]},ca:0,exp:{en:"IM epinephrine is first-line.",fr:"L'épinéphrine IM est de première intention."}},
+{en:"What is drug half-life?",fr:"Qu'est-ce que la demi-vie d'un médicament ?",a:{en:["Time to reduce concentration by 50%","Time to reach peak effect","Time to eliminate completely","Time to start working"],fr:["Temps pour réduire la concentration de 50%","Temps pour atteindre l'effet maximal","Temps pour éliminer complètement","Temps pour commencer à agir"]},ca:0,exp:{en:"Half-life determines dosing frequency.",fr:"La demi-vie détermine la fréquence."}},
+{en:"What receptor does morphine act on?",fr:"Sur quel récepteur la morphine agit-elle ?",a:{en:["Opioid receptor","Dopamine receptor","Serotonin receptor","GABA receptor"],fr:["Récepteur opioïde","Récepteur dopamine","Récepteur sérotonine","Récepteur GABA"]},ca:0,exp:{en:"Morphine is a mu-opioid agonist.",fr:"La morphine est un agoniste mu-opioïde."}},
+{en:"First-line for Type 2 diabetes?",fr:"Traitement de première intention du diabète type 2 ?",a:{en:["Metformin","Insulin","Glipizide","Acarbose"],fr:["Metformine","Insuline","Glipizide","Acarbose"]},ca:0,exp:{en:"Metformin reduces hepatic glucose production.",fr:"La metformine réduit la production hépatique."}},
+{en:"Which drug is a beta-blocker?",fr:"Quel médicament est un bêta-bloquant ?",a:{en:["Atenolol","Lisinopril","Amlodipine","Furosemide"],fr:["Aténolol","Lisinopril","Amlodipine","Furosémide"]},ca:0,exp:{en:"Atenolol blocks beta-1 receptors.",fr:"L'aténolol bloque les récepteurs bêta-1."}},
+{en:"What is therapeutic index?",fr:"Qu'est-ce que l'indice thérapeutique ?",a:{en:["Ratio of toxic to therapeutic dose","Drug absorption rate","Drug elimination rate","Drug distribution volume"],fr:["Ratio dose toxique/thérapeutique","Taux d'absorption","Taux d'élimination","Volume de distribution"]},ca:0,exp:{en:"Higher TI = safer drug.",fr:"Un IT élevé = médicament plus sûr."}},
+{en:"Which inhibits cell wall synthesis?",fr:"Quel antibiotique inhibe la paroi cellulaire ?",a:{en:["Penicillin","Tetracycline","Erythromycin","Ciprofloxacin"],fr:["Pénicilline","Tétracycline","Érythromycine","Ciprofloxacine"]},ca:0,exp:{en:"Penicillins inhibit peptidoglycan.",fr:"Les pénicillines inhibent le peptidoglycane."}},
+{en:"What is bioavailability?",fr:"Qu'est-ce que la biodisponibilité ?",a:{en:["Fraction reaching systemic circulation","Drug potency","Drug efficacy","Drug toxicity"],fr:["Fraction atteignant la circulation","Puissance du médicament","Efficacité du médicament","Toxicité du médicament"]},ca:0,exp:{en:"IV has 100% bioavailability.",fr:"L'IV a 100% de biodisponibilité."}},
+{en:"What treats asthma?",fr:"Quel médicament traite l'asthme ?",a:{en:["Albuterol","Digoxin","Warfarin","Metformin"],fr:["Albutérol","Digoxine","Warfarine","Metformine"]},ca:0,exp:{en:"Albuterol is a beta-2 agonist.",fr:"L'albutérol est un agoniste bêta-2."}},
+{en:"What is statins' mechanism?",fr:"Quel est le mécanisme des statines ?",a:{en:["HMG-CoA reductase inhibition","ACE inhibition","Beta blockade","Calcium channel blockade"],fr:["Inhibition HMG-CoA réductase","Inhibition ACE","Bêta-blocage","Blocage calcique"]},ca:0,exp:{en:"Statins reduce cholesterol synthesis.",fr:"Les statines réduisent le cholestérol."}},
+{en:"What treats Parkinson's?",fr:"Quel médicament traite la maladie de Parkinson ?",a:{en:["Levodopa","Insulin","Warfarin","Aspirin"],fr:["Lévodopa","Insuline","Warfarine","Aspirine"]},ca:0,exp:{en:"Levodopa converts to dopamine.",fr:"La lévodopa se convertit en dopamine."}},
+{en:"What is a prodrug?",fr:"Qu'est-ce qu'une prodrogue ?",a:{en:["Inactive form converted to active","Active drug form","Drug metabolite","Drug antagonist"],fr:["Forme inactive convertie en forme active","Forme active du médicament","Métabolite du médicament","Antagoniste du médicament"]},ca:0,exp:{en:"Prodrugs require metabolism to activate.",fr:"Les prodrogues nécessitent un métabolisme."}},
+{en:"Which is an anticoagulant?",fr:"Quel médicament est un anticoagulant ?",a:{en:["Heparin","Aspirin","Ibuprofen","Acetaminophen"],fr:["Héparine","Aspirine","Ibuprofène","Acétaminophène"]},ca:0,exp:{en:"Heparin enhances antithrombin III.",fr:"L'héparine augmente l'antithrombine III."}},
+{en:"How is insulin administered?",fr:"Comment l'insuline est-elle administrée ?",a:{en:["Subcutaneous","Oral","Intravenous","Topical"],fr:["Sous-cutanée","Orale","Intraveineuse","Topique"]},ca:0,exp:{en:"Insulin is destroyed by stomach acid.",fr:"L'insuline est détruite par l'acide gastrique."}},
+{en:"What treats depression?",fr:"Quel médicament traite la dépression ?",a:{en:["Fluoxetine","Ibuprofen","Omeprazole","Metformin"],fr:["Fluoxétine","Ibuprofène","Oméprazole","Metformine"]},ca:0,exp:{en:"Fluoxetine is an SSRI.",fr:"La fluoxétine est un ISRS."}},
+{en:"What is first-pass metabolism?",fr:"Qu'est-ce que le métabolisme de premier passage ?",a:{en:["Drug metabolism in liver before systemic circulation","Drug absorption in stomach","Drug elimination by kidneys","Drug distribution to tissues"],fr:["Métabolisme hépatique avant circulation systémique","Absorption gastrique","Élimination rénale","Distribution tissulaire"]},ca:0,exp:{en:"First-pass reduces oral bioavailability.",fr:"Le premier passage réduit la biodisponibilité."}},
+{en:"Which is a diuretic?",fr:"Quel médicament est un diurétique ?",a:{en:["Furosemide","Atenolol","Lisinopril","Amlodipine"],fr:["Furosémide","Aténolol","Lisinopril","Amlodipine"]},ca:0,exp:{en:"Furosemide is a loop diuretic.",fr:"Le furosémide est un diurétique de l'anse."}}
+]},
+year5:{label:{en:"YEAR 5 — INTERNAL MEDICINE",fr:"ANNÉE 5 — MÉDECINE INTERNE"},qs:[
+{en:"What causes heart failure most commonly?",fr:"Quelle est la cause la plus fréquente d'insuffisance cardiaque ?",a:{en:["Coronary artery disease","Valvular disease","Cardiomyopathy","Arrhythmia"],fr:["Maladie coronarienne","Maladie valvulaire","Cardiomyopathie","Arythmie"]},ca:0,exp:{en:"CAD reduces blood supply to heart muscle.",fr:"La maladie coronarienne réduit l'apport."}},
+{en:"What test diagnoses diabetes?",fr:"Quel test diagnostique le diabète ?",a:{en:["HbA1c","CBC","Lipid panel","Liver function test"],fr:["HbA1c","NFS","Bilan lipidique","Test fonction hépatique"]},ca:0,exp:{en:"HbA1c ≥6.5% indicates diabetes.",fr:"Une HbA1c ≥6,5% indique un diabète."}},
+{en:"What treats hypothyroidism?",fr:"Quel est le traitement de l'hypothyroïdie ?",a:{en:["Levothyroxine","Methimazole","Radioactive iodine","Beta blockers"],fr:["Lévothyroxine","Méthimazole","Iode radioactif","Bêta-bloquants"]},ca:0,exp:{en:"Levothyroxine replaces thyroid hormone.",fr:"La lévothyroxine remplace l'hormone."}},
+{en:"What is associated with H. pylori?",fr:"Quelle condition est associée à H. pylori ?",a:{en:["Peptic ulcer disease","GERD","Crohn's disease","Ulcerative colitis"],fr:["Maladie ulcéreuse peptique","RGO","Maladie de Crohn","Colite ulcéreuse"]},ca:0,exp:{en:"H. pylori causes chronic gastritis and ulcers.",fr:"H. pylori cause la gastrite et les ulcères."}},
+{en:"First-line hypertension treatment?",fr:"Traitement de première intention de l'hypertension ?",a:{en:["Thiazide diuretics","Beta blockers","ACE inhibitors","Calcium channel blockers"],fr:["Diurétiques thiazidiques","Bêta-bloquants","Inhibiteurs ACE","Bloqueurs calciques"]},ca:0,exp:{en:"Thiazides are often first-line.",fr:"Les thiazidiques sont souvent de première intention."}},
+{en:"What causes joint inflammation?",fr:"Quelle maladie cause une inflammation articulaire ?",a:{en:["Rheumatoid arthritis","Osteoporosis","Osteoarthritis","Gout"],fr:["Polyarthrite rhumatoïde","Ostéoporose","Ostéoarthrite","Goutte"]},ca:0,exp:{en:"RA is autoimmune inflammatory arthritis.",fr:"La PR est une arthrite auto-immune."}},
+{en:"What marks nephrotic syndrome?",fr:"Quelle est la caractéristique du syndrome néphrotique ?",a:{en:["Proteinuria","Hematuria","Oliguria","Polyuria"],fr:["Protéinurie","Hématurie","Oligurie","Polyurie"]},ca:0,exp:{en:"Proteinuria >3.5g/day defines nephrotic syndrome.",fr:"Protéinurie >3,5g/jour définit le syndrome."}},
+{en:"What causes elevated troponin?",fr:"Quelle condition cause une élévation de la troponine ?",a:{en:["Myocardial infarction","Stroke","Pulmonary embolism","Pneumonia"],fr:["Infarctus du myocarde","AVC","Embolie pulmonaire","Pneumonie"]},ca:0,exp:{en:"Troponin is specific for cardiac damage.",fr:"La troponine est spécifique des dommages cardiaques."}},
+{en:"What treats COPD exacerbation?",fr:"Quel est le traitement de l'exacerbation de la BPCO ?",a:{en:["Bronchodilators + steroids","Antibiotics only","Surgery","Oxygen only"],fr:["Bronchodilatateurs + stéroïdes","Antibiotiques seulement","Chirurgie","Oxygène seulement"]},ca:0,exp:{en:"Combination therapy reduces inflammation.",fr:"La thérapie combinée réduit l'inflammation."}},
+{en:"What affects the myelin sheath?",fr:"Quelle maladie affecte la gaine de myéline ?",a:{en:["Multiple sclerosis","Parkinson's","Alzheimer's","ALS"],fr:["Sclérose en plaques","Parkinson","Alzheimer","SLA"]},ca:0,exp:{en:"MS is autoimmune demyelination.",fr:"La SEP est une démyélinisation auto-immune."}},
+{en:"Most common anemia type?",fr:"Quel est le type d'anémie le plus courant ?",a:{en:["Iron deficiency","B12 deficiency","Folate deficiency","Hemolytic"],fr:["Carence en fer","Carence en B12","Carence en folate","Hémolytique"]},ca:0,exp:{en:"Iron deficiency is most common worldwide.",fr:"La carence en fer est la plus courante."}},
+{en:"What is associated with obesity?",fr:"Quelle condition est associée à l'obésité ?",a:{en:["Type 2 diabetes","Type 1 diabetes","Hypothyroidism","Addison's disease"],fr:["Diabète type 2","Diabète type 1","Hypothyroïdie","Maladie d'Addison"]},ca:0,exp:{en:"Obesity causes insulin resistance.",fr:"L'obésité cause la résistance à l'insuline."}},
+{en:"What treats atrial fibrillation?",fr:"Quel est le traitement de la fibrillation auriculaire ?",a:{en:["Anticoagulants + rate control","Antibiotics","Diuretics","Beta blockers only"],fr:["Anticoagulants + contrôle du rythme","Antibiotiques","Diurétiques","Bêta-bloquants seulement"]},ca:0,exp:{en:"Anticoagulation prevents stroke.",fr:"L'anticoagulation prévient l'AVC."}},
+{en:"What diagnoses MI?",fr:"Quel test diagnostique l'infarctus du myocarde ?",a:{en:["ECG + troponin","CBC","X-ray","MRI"],fr:["ECG + troponine","NFS","Radiographie","IRM"]},ca:0,exp:{en:"ECG shows ST changes; troponin confirms.",fr:"L'ECG montre ST ; la troponine confirme."}},
+{en:"What causes cirrhosis?",fr:"Quelle est la cause de la cirrhose ?",a:{en:["Chronic liver damage","Acute infection","Trauma","Genetic disorder"],fr:["Dommage hépatique chronique","Infection aiguë","Traumatisme","Trouble génétique"]},ca:0,exp:{en:"Chronic damage leads to fibrosis.",fr:"Les dommages chroniques mènent à la fibrose."}},
+{en:"Which disease is autoimmune?",fr:"Quelle maladie est auto-immune ?",a:{en:["Lupus","Osteoarthritis","Osteoporosis","Gout"],fr:["Lupus","Ostéoarthrite","Ostéoporose","Goutte"]},ca:0,exp:{en:"SLE is a systemic autoimmune disease.",fr:"Le LES est une maladie auto-immune."}},
+{en:"What treats seizures?",fr:"Quel est le traitement des convulsions ?",a:{en:["Anticonvulsants","Antibiotics","Antivirals","Antifungals"],fr:["Anticonvulsivants","Antibiotiques","Antiviraux","Antifongiques"]},ca:0,exp:{en:"Anticonvulsants stabilize neuronal activity.",fr:"Les anticonvulsivants stabilisent."}},
+{en:"What causes jaundice?",fr:"Quelle condition cause la jaunisse ?",a:{en:["Liver disease","Heart disease","Kidney disease","Lung disease"],fr:["Maladie hépatique","Maladie cardiaque","Maladie rénale","Maladie pulmonaire"]},ca:0,exp:{en:"Jaundice results from elevated bilirubin.",fr:"La jaunisse résulte de la bilirubine élevée."}},
+{en:"What marks Crohn's disease?",fr:"Quelle est la caractéristique de la maladie de Crohn ?",a:{en:["Transmural inflammation","Mucosal inflammation only","Vascular inflammation","Nerve inflammation"],fr:["Inflammation transmurale","Inflammation muqueuse seulement","Inflammation vasculaire","Inflammation nerveuse"]},ca:0,exp:{en:"Crohn's affects all bowel wall layers.",fr:"Crohn affecte toutes les couches."}},
+{en:"What treats GERD?",fr:"Quel médicament traite le RGO ?",a:{en:["Proton pump inhibitors","Antibiotics","Antivirals","Antifungals"],fr:["Inhibiteurs de la pompe à protons","Antibiotiques","Antiviraux","Antifongiques"]},ca:0,exp:{en:"PPIs are most effective for GERD.",fr:"Les IPP sont les plus efficaces."}}
+]},
+year6:{label:{en:"YEAR 6 — SURGERY & SPECIALTIES",fr:"ANNÉE 6 — CHIRURGIE & SPÉCIALITÉS"},qs:[
+{en:"What is the most common surgical emergency?",fr:"Quelle est l'urgence chirurgicale la plus courante ?",a:{en:["Appendicitis","Cholecystitis","Bowel obstruction","Perforated ulcer"],fr:["Appendicite","Cholécystite","Occlusion intestinale","Ulcère perforé"]},ca:0,exp:{en:"Appendicitis is the most common surgical emergency.",fr:"L'appendicite est l'urgence la plus courante."}},
+{en:"Which suture is absorbable?",fr:"Quel matériau de suture est absorbable ?",a:{en:["Vicryl","Silk","Nylon","Prolene"],fr:["Vicryl","Soie","Nylon","Prolène"]},ca:0,exp:{en:"Vicryl (polyglactin) is absorbable.",fr:"Vicryl (polyglactine) est absorbable."}},
+{en:"What treats acute cholecystitis?",fr:"Quel est le traitement de la cholécystite aiguë ?",a:{en:["Cholecystectomy","Antibiotics only","Observation","Drainage only"],fr:["Cholécystectomie","Antibiotiques seulement","Observation","Drainage seulement"]},ca:0,exp:{en:"Laparoscopic cholecystectomy is definitive.",fr:"La cholécystectomie laparoscopique est définitive."}},
+{en:"Which fracture is common in elderly?",fr:"Quelle fracture est courante chez les personnes âgées ?",a:{en:["Hip fracture","Skull fracture","Rib fracture","Clavicle fracture"],fr:["Fracture de la hanche","Fracture du crâne","Fracture de côte","Fracture de la clavicule"]},ca:0,exp:{en:"Hip fractures are common due to osteoporosis.",fr:"Les fractures de hanche sont courantes."}},
+{en:"Gold standard for appendicitis?",fr:"Étalon-or pour le diagnostic d'appendicite ?",a:{en:["CT scan","X-ray","Ultrasound","MRI"],fr:["Scanner","Radiographie","Échographie","IRM"]},ca:0,exp:{en:"CT has highest sensitivity and specificity.",fr:"Le scanner a la plus haute sensibilité."}},
+{en:"What surgery treats hernia?",fr:"Quelle chirurgie traite la hernie ?",a:{en:["Herniorrhaphy","Appendectomy","Cholecystectomy","Colectomy"],fr:["Herniorraphie","Appendicectomie","Cholécystectomie","Colectomie"]},ca:0,exp:{en:"Herniorrhaphy repairs the hernia defect.",fr:"L'herniorraphie répare le défaut."}},
+{en:"Complication of thyroid surgery?",fr:"Complication de la chirurgie thyroïdienne ?",a:{en:["Hypocalcemia","Hypercalcemia","Hyperglycemia","Hypoglycemia"],fr:["Hypocalcémie","Hypercalcémie","Hyperglycémie","Hypoglycémie"]},ca:0,exp:{en:"Parathyroid damage causes hypocalcemia.",fr:"Les dommages parathyroïdiens causent l'hypocalcémie."}},
+{en:"Most commonly transplanted organ?",fr:"Quel organe est le plus souvent transplanté ?",a:{en:["Kidney","Heart","Liver","Lung"],fr:["Rein","Cœur","Foie","Poumon"]},ca:0,exp:{en:"Kidney transplants are most common.",fr:"Les transplantations rénales sont les plus courantes."}},
+{en:"What treats bowel obstruction?",fr:"Quel est le traitement de l'occlusion intestinale ?",a:{en:["Surgery + NG tube","Antibiotics only","Observation","Laxatives"],fr:["Chirurgie + sonde NG","Antibiotiques seulement","Observation","Laxatifs"]},ca:0,exp:{en:"NG tube decompresses; surgery may be needed.",fr:"La sonde NG décompresse."}},
+{en:"What requires emergency surgery?",fr:"Quelle condition nécessite une chirurgie d'urgence ?",a:{en:["Perforated viscus","Gallstones","Hernia","Appendicitis"],fr:["Viscère perforé","Calculs biliaires","Hernie","Appendicite"]},ca:0,exp:{en:"Perforation causes peritonitis.",fr:"La perforation cause une péritonite."}},
+{en:"Purpose of surgical drains?",fr:"Quel est le but des drains chirurgicaux ?",a:{en:["Remove fluid/blood","Deliver medication","Monitor pressure","Prevent infection"],fr:["Éliminer liquide/sang","Administrer médicaments","Surveiller pression","Prévenir infection"]},ca:0,exp:{en:"Drains prevent fluid accumulation.",fr:"Les drains préviennent l'accumulation."}},
+{en:"Anesthesia for C-section?",fr:"Quelle anesthésie pour la césarienne ?",a:{en:["Spinal/epidural","General","Local","None"],fr:["Rachianesthésie/péridurale","Générale","Locale","Aucune"]},ca:0,exp:{en:"Regional allows mother to be awake.",fr:"L'anesthésie régionale permet d'être éveillé."}},
+{en:"What treats traumatic brain injury?",fr:"Quel est le traitement du traumatisme crânien ?",a:{en:["ICP monitoring + surgery","Antibiotics","Antivirals","Observation only"],fr:["Surveillance PIC + chirurgie","Antibiotiques","Antiviraux","Observation seulement"]},ca:0,exp:{en:"ICP monitoring guides treatment.",fr:"La surveillance du PIC guide le traitement."}},
+{en:"What surgery treats breast cancer?",fr:"Quelle chirurgie traite le cancer du sein ?",a:{en:["Mastectomy","Appendectomy","Cholecystectomy","Hysterectomy"],fr:["Mastectomie","Appendicectomie","Cholécystectomie","Hystérectomie"]},ca:0,exp:{en:"Mastectomy or lumpectomy depending on stage.",fr:"Mastectomie ou tumorectomie selon le stade."}},
+{en:"Complication of splenectomy?",fr:"Complication de la splénectomie ?",a:{en:["Increased infection risk","Bleeding","Liver failure","Kidney failure"],fr:["Risque d'infection accru","Saignement","Insuffisance hépatique","Insuffisance rénale"]},ca:0,exp:{en:"Spleen removes encapsulated bacteria.",fr:"La rate élimine les bactéries encapsulées."}},
+{en:"What treats kidney stones?",fr:"Quelle procédure traite les calculs rénaux ?",a:{en:["Lithotripsy","Nephrectomy","Dialysis","Transplant"],fr:["Lithotritie","Néphrectomie","Dialyse","Transplantation"]},ca:0,exp:{en:"ESWL breaks stones with shock waves.",fr:"La LEC brise les calculs."}},
+{en:"What treats varicose veins?",fr:"Quel est le traitement des varices ?",a:{en:["Sclerotherapy","Antibiotics","Antivirals","Antifungals"],fr:["Sclérothérapie","Antibiotiques","Antiviraux","Antifongiques"]},ca:0,exp:{en:"Sclerotherapy injects solution to close veins.",fr:"La sclérothérapie ferme les veines."}},
+{en:"What surgery treats carpal tunnel?",fr:"Quelle chirurgie traite le syndrome du canal carpien ?",a:{en:["Carpal tunnel release","Amputation","Fusion","Replacement"],fr:["Libération du canal carpien","Amputation","Fusion","Remplacement"]},ca:0,exp:{en:"Release cuts the transverse ligament.",fr:"La libération coupe le ligament."}},
+{en:"Purpose of surgical staplers?",fr:"Quel est le but des agrafeuses chirurgicales ?",a:{en:["Close incisions quickly","Cut tissue","Suction","Cauterize"],fr:["Fermer incisions rapidement","Couper tissu","Aspirer","Cautériser"]},ca:0,exp:{en:"Staplers provide quick closure.",fr:"Les agrafeuses fournissent une fermeture rapide."}},
+{en:"What requires bypass surgery?",fr:"Quelle condition nécessite une chirurgie de pontage ?",a:{en:["Coronary artery disease","Appendicitis","Hernia","Gallstones"],fr:["Maladie coronarienne","Appendicite","Hernie","Calculs biliaires"]},ca:0,exp:{en:"CABG bypasses blocked arteries.",fr:"Le PACG contourne les artères bloquées."}}
+]},
+year7:{label:{en:"YEAR 7 — CLINICAL MEDICINE & EMERGENCY",fr:"ANNÉE 7 — MÉDECINE CLINIQUE & URGENCES"},qs:[
+{en:"What is the first step in ACLS?",fr:"Quelle est la première étape de l'ACLS ?",a:{en:["Check responsiveness","Start CPR","Defibrillate","Give epinephrine"],fr:["Vérifier la réactivité","Commencer RCP","Défibriller","Donner épinéphrine"]},ca:0,exp:{en:"Always check responsiveness first.",fr:"Toujours vérifier la réactivité en premier."}},
+{en:"What treats anaphylactic shock?",fr:"Quel est le traitement du choc anaphylactique ?",a:{en:["Epinephrine IM","Antihistamines only","Steroids only","Observation"],fr:["Épinéphrine IM","Antihistaminiques seulement","Stéroïdes seulement","Observation"]},ca:0,exp:{en:"IM epinephrine is first-line.",fr:"L'épinéphrine IM est de première intention."}},
+{en:"What score assesses stroke severity?",fr:"Quel score évalue la gravité de l'AVC ?",a:{en:["NIHSS","Glasgow","APACHE","SOFA"],fr:["NIHSS","Glasgow","APACHE","SOFA"]},ca:0,exp:{en:"NIH Stroke Scale quantifies impairment.",fr:"L'échelle NIH quantifie les déficiences."}},
+{en:"What treats opioid overdose?",fr:"Quel est le traitement du surdosage d'opioïdes ?",a:{en:["Naloxone","Flumazenil","Atropine","Epinephrine"],fr:["Naloxone","Flumazénil","Atropine","Épinéphrine"]},ca:0,exp:{en:"Naloxone rapidly reverses opioids.",fr:"La naloxone inverse rapidement."}},
+{en:"What causes Kussmaul breathing?",fr:"Quelle condition cause la respiration de Kussmaul ?",a:{en:["Diabetic ketoacidosis","Asthma","COPD","Pneumonia"],fr:["Acidocétose diabétique","Asthme","BPCO","Pneumonie"]},ca:0,exp:{en:"Deep breathing compensates for acidosis.",fr:"Respiration profonde compense l'acidose."}},
+{en:"First-line treatment for seizures?",fr:"Traitement de première intention des convulsions ?",a:{en:["Benzodiazepines","Antibiotics","Antivirals","Antifungals"],fr:["Benzodiazépines","Antibiotiques","Antiviraux","Antifongiques"]},ca:0,exp:{en:"Benzos stop active seizures.",fr:"Les benzos arrêtent les convulsions."}},
+{en:"What diagnoses pulmonary embolism?",fr:"Quel test diagnostique l'embolie pulmonaire ?",a:{en:["CT pulmonary angiogram","X-ray","ECG","CBC"],fr:["Angioscanner pulmonaire","Radiographie","ECG","NFS"]},ca:0,exp:{en:"CTPA is gold standard for PE.",fr:"L'angioscanner est l'étalon-or."}},
+{en:"What treats hypoglycemia?",fr:"Quel est le traitement de l'hypoglycémie ?",a:{en:["Oral glucose/IV dextrose","Insulin","Metformin","Glucagon only"],fr:["Glucose oral/dextrose IV","Insuline","Metformine","Glucagon seulement"]},ca:0,exp:{en:"Give fast carbs if conscious.",fr:"Donner des glucides rapides si conscient."}},
+{en:"What requires intubation?",fr:"Quelle condition nécessite une intubation ?",a:{en:["Respiratory failure","Mild asthma","Common cold","Headache"],fr:["Insuffisance respiratoire","Asthme léger","Rhume","Maux de tête"]},ca:0,exp:{en:"Intubation secures airway.",fr:"L'intubation sécurise les voies aériennes."}},
+{en:"What is GCS range?",fr:"Quelle est l'échelle de Glasgow ?",a:{en:["3-15","1-10","0-20","5-25"],fr:["3-15","1-10","0-20","5-25"]},ca:0,exp:{en:"GCS 3 = deepest coma; 15 = alert.",fr:"GCS 3 = coma profond ; 15 = alerte."}},
+{en:"What drug treats cardiac arrest?",fr:"Quel médicament traite l'arrêt cardiaque ?",a:{en:["Epinephrine","Insulin","Metformin","Aspirin"],fr:["Épinéphrine","Insuline","Metformine","Aspirine"]},ca:0,exp:{en:"Epinephrine increases perfusion pressure.",fr:"L'épinéphrine augmente la perfusion."}},
+{en:"What treats tension pneumothorax?",fr:"Quel est le traitement du pneumothorax sous tension ?",a:{en:["Needle decompression","Antibiotics","Antivirals","Observation"],fr:["Décompression à l'aiguille","Antibiotiques","Antiviraux","Observation"]},ca:0,exp:{en:"Immediate needle decompression first.",fr:"Décompression immédiate à l'aiguille."}},
+{en:"What causes cherry-red skin?",fr:"Quelle condition cause une peau rouge cerise ?",a:{en:["Carbon monoxide poisoning","Cyanide poisoning","Methanol poisoning","Ethanol poisoning"],fr:["Intoxication au CO","Intoxication au cyanure","Intoxication au méthanol","Intoxication à l'éthanol"]},ca:0,exp:{en:"CO forms carboxyhemoglobin.",fr:"Le CO forme la carboxyhémoglobine."}},
+{en:"What is the treatment for burns?",fr:"Quel est le traitement des brûlures ?",a:{en:["Cool water + dressing","Ice directly","Butter","Toothpaste"],fr:["Eau fraîche + pansement","Glace directement","Beurre","Dentifrice"]},ca:0,exp:{en:"Cool running water for 20 min.",fr:"Eau fraîche courante pendant 20 min."}},
+{en:"What predicts ICU mortality?",fr:"Quel score prédit la mortalité en réanimation ?",a:{en:["APACHE II","Glasgow","NIHSS","CHA2DS2-VASc"],fr:["APACHE II","Glasgow","NIHSS","CHA2DS2-VASc"]},ca:0,exp:{en:"APACHE II uses physiologic variables.",fr:"APACHE II utilise des variables physiologiques."}},
+{en:"What treats septic shock?",fr:"Quel est le traitement du choc septique ?",a:{en:["Fluids + antibiotics + vasopressors","Antibiotics only","Fluids only","Steroids only"],fr:["Liquides + antibiotiques + vasopresseurs","Antibiotiques seulement","Liquides seulement","Stéroïdes seulement"]},ca:0,exp:{en:"Early antibiotics and fluids are critical.",fr:"Les antibiotiques précoces sont critiques."}},
+{en:"What causes Battle's sign?",fr:"Quelle condition cause le signe de Battle ?",a:{en:["Basilar skull fracture","Rib fracture","Hip fracture","Spinal fracture"],fr:["Fracture de la base du crâne","Fracture de côte","Fracture de hanche","Fracture vertébrale"]},ca:0,exp:{en:"Battle's sign is bruising behind ear.",fr:"Le signe de Battle est une ecchymose."}},
+{en:"What treats hyperkalemia?",fr:"Quel est le traitement de l'hyperkaliémie ?",a:{en:["Calcium gluconate + insulin","Potassium supplements","Sodium supplements","Magnesium supplements"],fr:["Gluconate de calcium + insuline","Suppléments de potassium","Suppléments de sodium","Suppléments de magnésium"]},ca:0,exp:{en:"Calcium stabilizes cardiac membrane.",fr:"Le calcium stabilise la membrane."}},
+{en:"What reverses benzodiazepines?",fr:"Quel médicament inverse les benzodiazépines ?",a:{en:["Flumazenil","Naloxone","Atropine","Epinephrine"],fr:["Flumazénil","Naloxone","Atropine","Épinéphrine"]},ca:0,exp:{en:"Flumazenil is a GABA-A antagonist.",fr:"Le flumazénil est un antagoniste GABA-A."}},
+{en:"First step in trauma assessment?",fr:"Première étape de l'évaluation du traumatisme ?",a:{en:["ABCDE survey","CT scan","X-ray","Blood tests"],fr:["Enquête ABCDE","Scanner","Radiographie","Tests sanguins"]},ca:0,exp:{en:"Primary survey identifies life threats.",fr:"L'enquête primaire identifie les menaces."}}
+]}
 };
+
 // ============================================================
 // TRANSLATIONS
 // ============================================================
@@ -370,9 +667,9 @@ certPresents:"THIS CERTIFIES THAT",
 certBody:"Having successfully completed seven years of rigorous medical education encompassing anatomy, physiology, biochemistry, pathology, microbiology, immunology, pharmacology, clinical medicine, and surgical sciences.",
 sigDean:"DEAN OF MEDICINE",sigReg:"MEDICAL REGISTRAR",
 saveCert:"SAVE CERTIFICATE",playAgain:"PLAY AGAIN",
-graduates:"GRADUATES",
-howToPlay:"Tap left/right side of screen to move. Answer 3 medical questions per level. Find the green exit to advance!",
-langBtn:"LANGUAGE: ENGLISH",startBtn:"BEGIN MEDICAL SCHOOL",howBtn:"HOW TO PLAY",
+graduates:"GRADUATES",bestScore:"BEST SCORE",
+howToPlay:"📱 TAP left/right side of screen to move\n\n🎯 Answer 3 medical questions per level\n\n🔓 Find the GREEN exit to advance\n\n⚡ Build streaks for bonus points!\n\n💾 Your progress AUTO-SAVES\n\n📊 View stats from pause menu",
+langBtn:"🌐 LANGUAGE: ENGLISH",startBtn:"🎓 BEGIN MEDICAL SCHOOL",continueBtn:"📂 CONTINUE PROGRESS",howBtn:"❓ HOW TO PLAY",statsBtn:"📊 VIEW STATS",deleteSave:"DELETE SAVE",
 correct:"✓ CORRECT!",wrong:"✗ INCORRECT",
 narrator1:"Find the green exit to advance!",
 narrator2:"Answer questions to unlock the exit!",
@@ -380,6 +677,12 @@ narrator3:"Year ",narrator4:" Level ",
 exitLocked:"Answer all 3 questions to unlock the exit!",
 exitOpen:"EXIT UNLOCKED — Reach the green square!",
 yearComp1:"You have completed Year ",yearComp2:" of Medical School!",
+questionTitle:"MEDICAL QUESTION",
+statsTitle:"YOUR STATISTICS",playerName:"Player Name",totalScore:"Total Score",questionsAnswered:"Questions Answered",
+correctAnswers:"Correct Answers",accuracy:"Accuracy",bestStreak:"Best Streak",
+currentStreak:"Current Streak",yearsCompleted:"Years Completed",playTime:"Total Play Time",
+lastSession:"Last Saved",close:"CLOSE",confirmDelete:"Are you sure you want to delete your save? This cannot be undone!",
+saveDeleted:"Save deleted!",noSave:"No saved game found"
 },
 fr:{
 year:"ANNÉE",level:"NIVEAU",score:"SCORE",paused:"PAUSE",resume:"REPRENDRE",
@@ -392,9 +695,9 @@ certPresents:"LE PRÉSENT CERTIFICAT ATTESTE QUE",
 certBody:"Ayant réussi sept ans d'enseignement médical rigoureux comprenant l'anatomie, la physiologie, la biochimie, la pathologie, la microbiologie, l'immunologie, la pharmacologie, la médecine clinique et les sciences chirurgicales.",
 sigDean:"DOYEN DE MÉDECINE",sigReg:"REGISTRAIRE MÉDICAL",
 saveCert:"ENREGISTRER",playAgain:"REJOUER",
-graduates:"DIPLÔMÉS",
-howToPlay:"Touchez le côté gauche/droite de l'écran pour vous déplacer. Répondez à 3 questions médicales par niveau. Trouvez la sortie verte pour avancer !",
-langBtn:"LANGUE : FRANÇAIS",startBtn:"COMMENCER L'ÉCOLE",howBtn:"COMMENT JOUER",
+graduates:"DIPLÔMÉS",bestScore:"MEILLEUR SCORE",
+howToPlay:"📱 TOUCHEZ gauche/droite pour vous déplacer\n\n🎯 Répondez à 3 questions par niveau\n\n🔓 Trouvez la SORTIE VERTE pour avancer\n\n⚡ Accumulez des séries pour des points !\n\n💾 Votre progression SAUVEGARDE AUTO\n\n📊 Consultez les stats dans le menu pause",
+langBtn:"🌐 LANGUE : FRANÇAIS",startBtn:"🎓 COMMENCER L'ÉCOLE",continueBtn:"📂 CONTINUER",howBtn:"❓ COMMENT JOUER",statsBtn:"📊 VOIR STATS",deleteSave:"SUPPRIMER SAVE",
 correct:"✓ CORRECT !",wrong:"✗ INCORRECT",
 narrator1:"Trouvez la sortie verte pour avancer !",
 narrator2:"Répondez aux questions pour débloquer la sortie !",
@@ -402,8 +705,128 @@ narrator3:"Année ",narrator4:" Niveau ",
 exitLocked:"Répondez aux 3 questions pour débloquer la sortie !",
 exitOpen:"SORTIE DÉVERROUILLÉE — Atteignez le carré vert !",
 yearComp1:"Vous avez terminé l'Année ",yearComp2:" de l'École de Médecine !",
+questionTitle:"QUESTION MÉDICALE",
+statsTitle:"VOS STATISTIQUES",playerName:"Nom du Joueur",totalScore:"Score Total",questionsAnswered:"Questions Répondues",
+correctAnswers:"Réponses Correctes",accuracy:"Précision",bestStreak:"Meilleure Série",
+currentStreak:"Série Actuelle",yearsCompleted:"Années Terminées",playTime:"Temps de Jeu Total",
+lastSession:"Dernière Sauvegarde",close:"FERMER",confirmDelete:"Êtes-vous sûr de vouloir supprimer votre sauvegarde ? Ceci est irréversible !",
+saveDeleted:"Sauvegarde supprimée !",noSave:"Aucune sauvegarde trouvée"
 },
 };
+
+// ============================================================
+// PERSISTENT SAVE SYSTEM
+// ============================================================
+const SaveSystem = {
+key:'dq_save_v3',
+load(){
+try{
+const data=localStorage.getItem(this.key);
+if(data)return JSON.parse(data);
+}catch(e){console.error('Load error:',e)}
+return null;
+},
+save(state){
+try{
+localStorage.setItem(this.key,JSON.stringify(state));
+return true;
+}catch(e){console.error('Save error:',e);return false}
+},
+clear(){
+localStorage.removeItem(this.key);
+}
+};
+
+// ============================================================
+// ACHIEVEMENTS SYSTEM
+// ============================================================
+const Achievements = {
+key:'dq_achievements_v2',
+unlocked:[],
+check(id){
+if(this.unlocked.includes(id))return false;
+this.unlocked.push(id);
+this.save();
+this.show(id);
+return true;
+},
+show(id){
+const ach={
+firstStep:{en:"First Steps",fr:"Premiers Pas"},
+streak5:{en:"On Fire!",fr:"En Feu !"},
+streak10:{en:"Unstoppable!",fr:"Imbattable !"},
+year1:{en:"Resident",fr:"Interne"},
+year3:{en:"Senior Resident",fr:"Interne Senior"},
+year7:{en:"Doctor!",fr:"Docteur !"},
+score1000:{en:"Scholar",fr:"Érudit"},
+score5000:{en:"Expert",fr:"Expert"},
+perfect:{en:"Perfect Score",fr:"Score Parfait"}
+};
+const popup=document.getElementById('achPopup');
+const desc=document.getElementById('achDesc');
+desc.textContent=ach[id]?ach[id][g.lang]:id;
+popup.classList.add('show');
+audioCtx.playTone(880,0.1,'sine',0.3);
+setTimeout(()=>audioCtx.playTone(1100,0.15,'sine',0.3),100);
+setTimeout(()=>audioCtx.playTone(1320,0.2,'sine',0.3),200);
+setTimeout(()=>popup.classList.remove('show'),3000);
+},
+save(){localStorage.setItem(this.key,JSON.stringify(this.unlocked));},
+load(){
+try{
+const data=localStorage.getItem(this.key);
+if(data)this.unlocked=JSON.parse(data);
+}catch(e){}
+}
+};
+
+// ============================================================
+// AUDIO SYSTEM
+// ============================================================
+const audioCtx = {
+ctx:null,
+init(){
+if(!this.ctx){
+this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+}
+},
+playTone(freq,duration,type='sine',vol=0.3){
+if(!this.ctx)return;
+const osc = this.ctx.createOscillator();
+const gain = this.ctx.createGain();
+osc.connect(gain);
+gain.connect(this.ctx.destination);
+osc.frequency.value = freq;
+osc.type = type;
+gain.gain.setValueAtTime(vol,this.ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01,this.ctx.currentTime+duration);
+osc.start(this.ctx.currentTime);
+osc.stop(this.ctx.currentTime+duration);
+},
+playCorrect(){
+this.playTone(523,0.1,'sine',0.3);
+setTimeout(()=>this.playTone(659,0.1,'sine',0.3),100);
+setTimeout(()=>this.playTone(784,0.2,'sine',0.3),200);
+},
+playWrong(){
+this.playTone(200,0.15,'sawtooth',0.2);
+setTimeout(()=>this.playTone(150,0.2,'sawtooth',0.2),100);
+},
+playStep(){
+this.playTone(300,0.05,'sine',0.1);
+},
+playLevelComplete(){
+[523,659,784,1046].forEach((f,i)=>setTimeout(()=>this.playTone(f,0.15,'sine',0.3),i*100));
+},
+playYearComplete(){
+[523,659,784,988,1046,1318].forEach((f,i)=>setTimeout(()=>this.playTone(f,0.2,'sine',0.3),i*150));
+},
+playSave(){
+this.playTone(880,0.1,'sine',0.2);
+setTimeout(()=>this.playTone(1100,0.15,'sine',0.2),100);
+}
+};
+
 // ============================================================
 // GAME STATE
 // ============================================================
@@ -416,35 +839,44 @@ answered:0,
 score:0,
 maze:[],mazeW:0,mazeH:0,
 exit:{x:0,y:0},
-// Player
 px:1,py:1,
 rx:0,ry:0,
 tx:0,ty:0,
 moving:false,
 moveDir:null,
 moveProgress:0,
-// Robot animation
 robotFrame:0,robotTimer:0,
 eyeOffset:0,eyeTimer:0,
-// Questions
 pool:[],
 exitLocked:true,
 questionShowing:false,
 skipTimer:0,
 skipMax:10000,
-currentCorrectIndex:-1, // Track shuffled correct answer index
-// Particles
+currentCorrectIndex:-1,
+currentExplanation:'',
 particles:[],
-// Touch controls state
 touchStartX:0,touchStartY:0,touchActive:false,
-// Misc
 lang:'en',
+playerName:'',
 graduated:parseInt(localStorage.getItem('dq_grad'))||0,
 lastTime:0,raf:null,
 cellOffX:0,cellOffY:0,
 questionSpots:[],
 triggeredSpots:new Set(),
+stats:{
+totalScore:0,
+totalQuestions:0,
+correctAnswers:0,
+bestStreak:0,
+currentStreak:0,
+yearsCompleted:0,
+totalPlayTime:0,
+lastSession:0,
+startTime:0
+},
+hasSave:false
 };
+
 // ============================================================
 // CANVAS & TOUCH CONTROLS
 // ============================================================
@@ -453,8 +885,6 @@ g.canvas=document.getElementById('c');
 g.ctx=g.canvas.getContext('2d');
 resize();
 window.addEventListener('resize',resize);
-
-// FULL SCREEN TOUCH CONTROLS
 const touchOverlay=document.getElementById('touchOverlay');
 touchOverlay.addEventListener('touchstart',(e)=>{
 if(!g.running||g.paused||g.questionShowing||g.moving)return;
@@ -465,7 +895,6 @@ g.touchStartY=e.touches[0].clientY;
 const rect=touchOverlay.getBoundingClientRect();
 const touchX=g.touchStartX-rect.left;
 const zoneWidth=rect.width/2;
-// Show visual feedback
 if(touchX<zoneWidth){
 document.getElementById('indicatorLeft').style.opacity='1';
 }else{
@@ -482,18 +911,16 @@ const touchEndY=e.changedTouches[0].clientY;
 const dx=touchEndX-g.touchStartX;
 const dy=touchEndY-g.touchStartY;
 const absDx=Math.abs(dx),absDy=Math.abs(dy);
-// Reset indicators
 document.getElementById('indicatorUp').style.opacity='0';
 document.getElementById('indicatorDown').style.opacity='0';
 document.getElementById('indicatorLeft').style.opacity='0';
 document.getElementById('indicatorRight').style.opacity='0';
-// Determine swipe direction
 if(absDx>absDy&&absDx>30){
-if(dx>0)tryMove(1,0); // Right
-else tryMove(-1,0); // Left
+if(dx>0)tryMove(1,0);
+else tryMove(-1,0);
 }else if(absDy>absDx&&absDy>30){
-if(dy>0)tryMove(0,1); // Down
-else tryMove(0,-1); // Up
+if(dy>0)tryMove(0,1);
+else tryMove(0,-1);
 }
 });
 touchOverlay.addEventListener('touchmove',(e)=>{
@@ -503,26 +930,27 @@ const rect=touchOverlay.getBoundingClientRect();
 const touchX=e.touches[0].clientX-rect.left;
 const touchY=e.touches[0].clientY-rect.top;
 const zoneWidth=rect.width/2;
-const zoneHeight=rect.height/2;
-// Show directional indicators based on swipe direction
 if(touchX<zoneWidth){
-if(touchY<zoneHeight)document.getElementById('indicatorUp').style.opacity='1';
+if(touchY<rect.height/2)document.getElementById('indicatorUp').style.opacity='1';
 else document.getElementById('indicatorDown').style.opacity='1';
 }else{
-if(touchY<zoneHeight)document.getElementById('indicatorUp').style.opacity='1';
-else document.getElementById('indicatorDown').style.opacity='1';
+if(touchY<rect.height/2)document.getElementById('indicatorUp').style.opacity='1';
+else document.getElementById('indicatorDown').style.opacity='0';
 }
 });
-};
+}
+
 function resize(){
 g.W=window.innerWidth;g.H=window.innerHeight;
 g.canvas.width=g.W;g.canvas.height=g.H;
 if(g.running)recalcOffsets();
 }
+
 function recalcOffsets(){
 g.cellOffX=Math.floor((g.W - g.mazeW*g.cs)/2);
 g.cellOffY=Math.floor((g.H - g.mazeH*g.cs)/2)+10;
 }
+
 // ============================================================
 // MAZE GENERATION
 // ============================================================
@@ -565,6 +993,7 @@ g.questionSpots.push(pathCells[i]);
 g.maze=maze;
 recalcOffsets();
 }
+
 // ============================================================
 // LOAD LEVEL
 // ============================================================
@@ -582,9 +1011,12 @@ const yearKey='year'+g.year;
 const src=DB[yearKey]||DB.year1;
 g.pool=[...src.qs].sort(()=>Math.random()-.5);
 showNarrator(t('narrator3')+g.year+t('narrator4')+g.level+' — '+t('narrator1'));
+if(g.stats.startTime===0)g.stats.startTime=Date.now();
 }
+
 function cellToPixX(x){return g.cellOffX+x*g.cs+2}
 function cellToPixY(y){return g.cellOffY+y*g.cs+2}
+
 // ============================================================
 // PLAYER MOVEMENT
 // ============================================================
@@ -598,7 +1030,9 @@ g.px=nx;g.py=ny;
 g.tx=cellToPixX(nx);g.ty=cellToPixY(ny);
 g.moving=true;g.moveProgress=0;
 g.moveDir={dx,dy};
+audioCtx.playStep();
 }
+
 function updateMovement(dt){
 if(!g.moving)return;
 g.moveProgress+=MOVE_SPEED*(dt/16.67);
@@ -611,7 +1045,9 @@ g.rx=lerp(g.rx,g.tx,g.moveProgress);
 g.ry=lerp(g.ry,g.ty,g.moveProgress);
 }
 }
+
 function lerp(a,b,t){return a+(b-a)*t}
+
 function checkCell(){
 if(g.px===g.exit.x&&g.py===g.exit.y){
 if(!g.exitLocked){levelComplete();return;}
@@ -626,8 +1062,9 @@ setTimeout(()=>showQuestion(),200);
 }
 }
 }
+
 // ============================================================
-// QUESTION SYSTEM (FIXED: SHUFFLED OPTIONS & LANGUAGE SEPARATION)
+// QUESTION SYSTEM
 // ============================================================
 function showQuestion(){
 if(g.answered>=3||g.questionShowing)return;
@@ -642,18 +1079,15 @@ const yearKey='year'+g.year;
 document.getElementById('qTitle').textContent=t('questionTitle')||'MEDICAL QUESTION';
 document.getElementById('qBadge').textContent=DB[yearKey].label[lang];
 document.getElementById('qText').textContent=lang==='en'?q.en:q.fr;
-
-// SHUFFLE OPTIONS AND TRACK CORRECT INDEX
 const options = lang==='en' ? q.a.en : q.a.fr;
 const indices = [...Array(options.length).keys()];
-// Fisher-Yates shuffle
 for(let i=indices.length-1;i>0;i--){
 const j=Math.floor(Math.random()*(i+1));
 [indices[i],indices[j]]=[indices[j],indices[i]];
 }
 const shuffledOptions = indices.map(i=>options[i]);
-g.currentCorrectIndex = indices.indexOf(q.ca); // Track correct answer in shuffled array
-
+g.currentCorrectIndex = indices.indexOf(q.ca);
+g.currentExplanation = q.exp ? (lang==='en'?q.exp.en:q.exp.fr) : '';
 const opts=document.getElementById('qOpts');
 opts.innerHTML='';
 shuffledOptions.forEach((opt,i)=>{
@@ -664,24 +1098,46 @@ btn.onclick=()=>handleAnswer(i,btn,opts,q);
 opts.appendChild(btn);
 });
 document.getElementById('qFb').textContent='';
-document.getElementById('qFb').style.color='';
+document.getElementById('qFb').className='q-feedback';
+document.getElementById('qExplanation').textContent='';
+document.getElementById('qExplanation').classList.remove('show');
 document.getElementById('skipBtn').textContent=t('skip');
+document.getElementById('skipBtn').disabled=false;
 g.skipTimer=g.skipMax;
 document.getElementById('skipBar').style.width='100%';
 document.getElementById('qPanel').classList.add('active');
-spawnParticles(g.rx+g.cs/2,g.ry+g.cs/2,'#00e5ff',8);
+spawnParticles(g.W/2,g.H/2,'#00e5ff',8);
 }
+
 function handleAnswer(selected,clickedBtn,optsEl,q){
 if(clickedBtn.disabled)return;
 Array.from(optsEl.children).forEach(b=>b.disabled=true);
 const fb=document.getElementById('qFb');
-// USE SHUFFLED CORRECT INDEX (NOT ORIGINAL q.ca)
+const expEl=document.getElementById('qExplanation');
+g.stats.totalQuestions++;
+g.stats.totalPlayTime=Math.floor((Date.now()-g.stats.startTime)/1000);
 if(selected===g.currentCorrectIndex){
 clickedBtn.classList.add('correct');
 fb.textContent=t('correct');
-fb.style.color='var(--green)';
+fb.className='q-feedback correct';
 g.answered++;g.score+=100*g.year;
+g.stats.correctAnswers++;
+g.stats.currentStreak++;
+if(g.stats.currentStreak>g.stats.bestStreak){
+g.stats.bestStreak=g.stats.currentStreak;
+}
+g.stats.totalScore=g.score;
+audioCtx.playCorrect();
 spawnParticles(g.W/2,g.H/2,'#2ecc71',20);
+if(g.stats.currentStreak>=5)Achievements.check('streak5');
+if(g.stats.currentStreak>=10)Achievements.check('streak10');
+if(g.stats.currentStreak>=10)Achievements.check('perfect');
+if(g.score>=1000)Achievements.check('score1000');
+if(g.score>=5000)Achievements.check('score5000');
+if(g.currentExplanation){
+expEl.textContent='💡 '+g.currentExplanation;
+expEl.classList.add('show');
+}
 updateDots();updateHUD();
 setTimeout(()=>{
 closeQuestion();
@@ -689,28 +1145,91 @@ if(g.answered>=3){
 g.exitLocked=false;
 showNarrator(t('exitOpen'));
 spawnParticles(g.cellOffX+g.exit.x*g.cs+g.cs/2,g.cellOffY+g.exit.y*g.cs+g.cs/2,'#2ecc71',30);
+audioCtx.playLevelComplete();
 }
-},1200);
+autoSave();
+},1500);
 }else{
 clickedBtn.classList.add('wrong');
-// Highlight CORRECT button using shuffled index
 if(optsEl.children[g.currentCorrectIndex]){
 optsEl.children[g.currentCorrectIndex].classList.add('correct');
 }
 fb.textContent=t('wrong');
-fb.style.color='var(--red)';
+fb.className='q-feedback wrong';
 g.score=Math.max(0,g.score-20);
+g.stats.currentStreak=0;
+audioCtx.playWrong();
+document.querySelector('.q-box').classList.add('shake');
+setTimeout(()=>document.querySelector('.q-box').classList.remove('shake'),300);
 spawnParticles(g.rx+g.cs/2,g.ry+g.cs/2,'#e74c3c',12);
+if(g.currentExplanation){
+expEl.textContent='💡 '+g.currentExplanation;
+expEl.classList.add('show');
+}
 updateHUD();
-setTimeout(()=>closeQuestion(),2200);
+setTimeout(()=>closeQuestion(),2500);
 }
 }
+
 function closeQuestion(){
 document.getElementById('qPanel').classList.remove('active');
 g.questionShowing=false;
 g.skipTimer=0;
-g.currentCorrectIndex=-1; // Reset
+g.currentCorrectIndex=-1;
+g.currentExplanation='';
 }
+
+// ============================================================
+// AUTO-SAVE SYSTEM
+// ============================================================
+function autoSave(){
+const saveData={
+playerName:g.playerName,
+year:g.year,
+level:g.level,
+score:g.score,
+answered:g.answered,
+lang:g.lang,
+stats:g.stats,
+timestamp:Date.now()
+};
+if(SaveSystem.save(saveData)){
+g.hasSave=true;
+showSaveIndicator();
+audioCtx.playSave();
+}
+}
+
+function showSaveIndicator(){
+const indicator=document.getElementById('saveIndicator');
+indicator.classList.add('show');
+setTimeout(()=>indicator.classList.remove('show'),2000);
+}
+
+function loadSavedGame(){
+const saved=SaveSystem.load();
+if(saved){
+g.playerName=saved.playerName||'';
+g.year=saved.year||1;
+g.level=saved.level||1;
+g.score=saved.score||0;
+g.answered=saved.answered||0;
+g.lang=saved.lang||'en';
+g.stats=saved.stats||g.stats;
+g.hasSave=true;
+document.getElementById('playerNameInput').value=g.playerName;
+return true;
+}
+return false;
+}
+
+function clearSavedGame(){
+SaveSystem.clear();
+g.hasSave=false;
+g.playerName='';
+document.getElementById('playerNameInput').value='';
+}
+
 // ============================================================
 // LEVEL / YEAR COMPLETE
 // ============================================================
@@ -719,27 +1238,38 @@ if(g.level<7){
 g.level++;
 loadLevel();
 spawnParticles(g.W/2,g.H/2,'#f1c40f',30);
+audioCtx.playLevelComplete();
+if(g.level===2&&g.year===1)Achievements.check('firstStep');
+autoSave();
 }else{
 yearComplete();
 }
 }
+
 function yearComplete(){
 g.running=false;
+g.stats.yearsCompleted=g.year;
 const panel=document.getElementById('yearComp');
 const tl=document.getElementById('ycTitle');
 const tx=document.getElementById('ycText');
 const btn=document.getElementById('nextYrBtn');
 if(g.year===7){
 tl.textContent=g.lang==='en'?'CONGRATULATIONS!':'FÉLICITATIONS !';
-tx.textContent=g.lang==='en'?'You have completed ALL 7 years of Medical School! You are now a Doctor!':"Vous avez terminé les 7 années d'École de Médecine ! Vous êtes maintenant Docteur !";
+tx.textContent=g.lang==='en'?'You have completed ALL 7 years! You are now a Doctor!':"Vous avez terminé les 7 années ! Vous êtes Docteur !";
 btn.textContent=g.lang==='en'?'RECEIVE CERTIFICATE':'RECEVOIR LE CERTIFICAT';
+Achievements.check('year7');
 }else{
 tl.textContent=`${t('year')} ${g.year} ${t('yearComplete')}`;
 tx.textContent=t('yearComp1')+g.year+t('yearComp2');
 btn.textContent=t('nextYear')+' '+(g.lang==='en'?'Year ':'Année ')+(g.year+1);
+if(g.year===1)Achievements.check('year1');
+if(g.year===3)Achievements.check('year3');
 }
 panel.classList.add('active');
+audioCtx.playYearComplete();
+autoSave();
 }
+
 function showCertificate(){
 document.getElementById('yearComp').classList.remove('active');
 document.getElementById('certScreen').classList.add('active');
@@ -749,13 +1279,41 @@ document.getElementById('certTL').textContent=t('certTitle');
 document.getElementById('certBody').textContent=t('certBody');
 document.getElementById('sigDean').textContent=t('sigDean');
 document.getElementById('sigReg').textContent=t('sigReg');
-document.getElementById('certName').textContent='DR. GRADUATE';
+const name=g.playerName||'GRADUATE';
+document.getElementById('certName').textContent='DR. '+name.toUpperCase();
 const now=new Date();
 document.getElementById('certDate').textContent=now.toLocaleDateString(g.lang==='en'?'en-US':'fr-FR',{year:'numeric',month:'long',day:'numeric'});
 g.graduated++;
 localStorage.setItem('dq_grad',g.graduated);
 document.getElementById('gradCount').textContent=g.graduated;
 }
+
+// ============================================================
+// STATS DISPLAY
+// ============================================================
+function showStats(){
+const panel=document.getElementById('statsPanel');
+document.getElementById('statPlayerName').textContent=g.playerName||'-';
+document.getElementById('statTotalScore').textContent=g.stats.totalScore;
+document.getElementById('statTotalQ').textContent=g.stats.totalQuestions;
+document.getElementById('statCorrect').textContent=g.stats.correctAnswers;
+const accuracy=g.stats.totalQuestions>0?Math.round((g.stats.correctAnswers/g.stats.totalQuestions)*100):0;
+document.getElementById('statAccuracy').textContent=accuracy+'%';
+document.getElementById('statBestStreak').textContent=g.stats.bestStreak;
+document.getElementById('statCurrentStreak').textContent=g.stats.currentStreak;
+document.getElementById('statYears').textContent=g.stats.yearsCompleted+'/7';
+const minutes=Math.floor(g.stats.totalPlayTime/60);
+document.getElementById('statPlayTime').textContent=minutes+'m';
+const last=g.stats.lastSession>0?new Date(g.stats.lastSession).toLocaleDateString():t('noSave');
+document.getElementById('statLastSession').textContent=last;
+// Pause menu stats
+document.getElementById('pausePlayerName').textContent=g.playerName||'-';
+document.getElementById('pauseYear').textContent=g.year;
+document.getElementById('pauseLevel').textContent=g.level;
+document.getElementById('pauseScore').textContent=g.score;
+panel.classList.add('active');
+}
+
 // ============================================================
 // PARTICLE SYSTEM
 // ============================================================
@@ -770,6 +1328,7 @@ size:2+Math.random()*5,color
 });
 }
 }
+
 function updateParticles(dt){
 const f=dt/16.67;
 g.particles=g.particles.filter(p=>{
@@ -778,6 +1337,7 @@ p.life-=p.decay*f;
 return p.life>0;
 });
 }
+
 function drawParticles(){
 const ctx=g.ctx;
 g.particles.forEach(p=>{
@@ -790,6 +1350,7 @@ ctx.fill();
 ctx.restore();
 });
 }
+
 // ============================================================
 // ROBOT DRAWING
 // ============================================================
@@ -889,6 +1450,7 @@ ctx.lineTo(s*.03,-s*.22);ctx.lineTo(s*.1,-s*.26);
 ctx.stroke();
 ctx.restore();
 }
+
 // ============================================================
 // RENDER MAZE
 // ============================================================
@@ -959,6 +1521,7 @@ ctx.fillText('▶',ex+cs/2,ey+cs/2);
 }
 ctx.textAlign='left';ctx.textBaseline='alphabetic';
 }
+
 // ============================================================
 // MAIN RENDER
 // ============================================================
@@ -974,6 +1537,7 @@ drawParticles();
 const rs=g.cs-2;
 drawRobot(ctx,g.rx,g.ry,rs);
 }
+
 // ============================================================
 // GAME LOOP
 // ============================================================
@@ -993,6 +1557,7 @@ if(g.skipTimer<=0)closeQuestion();
 render();
 g.raf=requestAnimationFrame(loop);
 }
+
 // ============================================================
 // UI HELPERS
 // ============================================================
@@ -1007,8 +1572,17 @@ function updateHUD(){
 document.getElementById('vYear').textContent=g.year;
 document.getElementById('vLevel').textContent=g.level;
 document.getElementById('vScore').textContent=g.score;
+document.getElementById('vStreak').textContent=g.stats.currentStreak;
 const pct=((g.year-1)*7+(g.level-1)+(g.answered/3))/(7*7)*100;
 document.getElementById('progFill').style.width=Math.min(100,pct)+'%';
+const streakBadge=document.getElementById('hStreak');
+if(g.stats.currentStreak>=2){
+streakBadge.classList.add('active');
+streakBadge.style.display='block';
+}else{
+streakBadge.classList.remove('active');
+streakBadge.style.display='none';
+}
 }
 function updateDots(){
 for(let i=0;i<3;i++){
@@ -1016,36 +1590,74 @@ const d=document.getElementById('d'+i);
 d.classList.toggle('lit',i<g.answered);
 }
 }
+
 // ============================================================
 // INIT GAME
 // ============================================================
 function startGame(){
+const nameInput=document.getElementById('playerNameInput');
+g.playerName=nameInput.value.trim()||'STUDENT';
+audioCtx.init();
 document.getElementById('title').style.opacity='0';
 setTimeout(()=>document.getElementById('title').classList.add('hidden'),600);
 g.year=1;g.level=1;g.answered=0;g.score=0;g.running=true;g.paused=false;
+g.stats={totalScore:0,totalQuestions:0,correctAnswers:0,bestStreak:0,currentStreak:0,yearsCompleted:0,totalPlayTime:0,lastSession:Date.now(),startTime:Date.now()};
 loadLevel();
 g.rx=cellToPixX(g.px);g.ry=cellToPixY(g.py);
 if(g.raf)cancelAnimationFrame(g.raf);
 g.lastTime=performance.now();
 g.raf=requestAnimationFrame(loop);
 }
+
+function continueGame(){
+const nameInput=document.getElementById('playerNameInput');
+g.playerName=nameInput.value.trim()||g.playerName||'STUDENT';
+audioCtx.init();
+if(loadSavedGame()){
+document.getElementById('title').style.opacity='0';
+setTimeout(()=>document.getElementById('title').classList.add('hidden'),600);
+g.running=true;g.paused=false;
+g.stats.lastSession=Date.now();
+loadLevel();
+g.rx=cellToPixX(g.px);g.ry=cellToPixY(g.py);
+if(g.raf)cancelAnimationFrame(g.raf);
+g.lastTime=performance.now();
+g.raf=requestAnimationFrame(loop);
+}
+}
+
 // ============================================================
 // EVENTS
 // ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
 initCanvas();
+Achievements.load();
+const bestScore=parseInt(localStorage.getItem('dq_best_score'))||0;
 document.getElementById('gradCount').textContent=g.graduated;
+document.getElementById('bestScore').textContent=bestScore;
+// Check for saved game
+if(loadSavedGame()){
+document.getElementById('continueBtn').style.display='block';
+const saveInfo=document.getElementById('saveInfo');
+saveInfo.textContent=`💾 ${t('year')} ${g.year} · ${t('level')} ${g.level} · ${t('score')}: ${g.score}`;
+saveInfo.classList.add('show');
+}
 document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('continueBtn').addEventListener('click',continueGame);
 document.getElementById('langBtn').addEventListener('click',()=>{
 g.lang=g.lang==='en'?'fr':'en';
 document.getElementById('langBtn').textContent=t('langBtn');
 document.getElementById('startBtn').textContent=t('startBtn');
+document.getElementById('continueBtn').textContent=t('continueBtn');
 document.getElementById('howBtn').textContent=t('howBtn');
+document.getElementById('statsBtnMain').textContent=t('statsBtn');
 document.getElementById('gradCount').textContent=g.graduated;
+document.getElementById('bestScore').textContent=bestScore;
 });
 document.getElementById('howBtn').addEventListener('click',()=>{
 alert(t('howToPlay'));
 });
+document.getElementById('statsBtnMain').addEventListener('click',showStats);
 document.getElementById('pauseBtn').addEventListener('click',()=>{
 if(!g.running)return;
 g.paused=!g.paused;
@@ -1054,6 +1666,7 @@ document.getElementById('pTitle').textContent=t('paused');
 document.getElementById('resumeBtn').textContent=t('resume');
 document.getElementById('rstBtn').textContent=t('restart');
 document.getElementById('quitBtn').textContent=t('quit');
+showStats();
 });
 document.getElementById('resumeBtn').addEventListener('click',()=>{
 g.paused=false;document.getElementById('pauseMenu').classList.remove('active');
@@ -1064,12 +1677,37 @@ loadLevel();
 g.rx=cellToPixX(g.px);g.ry=cellToPixY(g.py);
 if(!g.raf){g.lastTime=performance.now();g.raf=requestAnimationFrame(loop);}
 });
+document.getElementById('statsBtn').addEventListener('click',showStats);
+document.getElementById('closeStatsBtn').addEventListener('click',()=>{
+document.getElementById('statsPanel').classList.remove('active');
+});
+document.getElementById('deleteSaveBtn').addEventListener('click',()=>{
+if(confirm(t('confirmDelete'))){
+clearSavedGame();
+document.getElementById('continueBtn').style.display='none';
+document.getElementById('saveInfo').classList.remove('show');
+document.getElementById('statsPanel').classList.remove('active');
+alert(t('saveDeleted'));
+}
+});
 document.getElementById('quitBtn').addEventListener('click',()=>{
+const bestScore=parseInt(localStorage.getItem('dq_best_score'))||0;
+if(g.score>bestScore){
+localStorage.setItem('dq_best_score',g.score);
+}
+g.stats.lastSession=Date.now();
+autoSave();
 g.running=false;g.paused=false;
 document.getElementById('pauseMenu').classList.remove('active');
 document.getElementById('title').classList.remove('hidden');
 document.getElementById('title').style.opacity='1';
 if(g.raf){cancelAnimationFrame(g.raf);g.raf=null;}
+if(loadSavedGame()){
+document.getElementById('continueBtn').style.display='block';
+const saveInfo=document.getElementById('saveInfo');
+saveInfo.textContent=`💾 ${t('year')} ${g.year} · ${t('level')} ${g.level} · ${t('score')}: ${g.score}`;
+saveInfo.classList.add('show');
+}
 });
 document.getElementById('skipBtn').addEventListener('click',closeQuestion);
 document.getElementById('nextYrBtn').addEventListener('click',()=>{
@@ -1086,10 +1724,34 @@ document.getElementById('dlBtn').addEventListener('click',()=>{
 alert(g.lang==='en'?'🎓 Certificate saved! You are officially a Doctor!':'🎓 Certificat enregistré ! Vous êtes officiellement Docteur !');
 });
 document.getElementById('playAgainBtn').addEventListener('click',()=>{
+clearSavedGame();
 document.getElementById('certScreen').classList.remove('active');
 document.getElementById('title').classList.remove('hidden');
 document.getElementById('title').style.opacity='1';
+document.getElementById('continueBtn').style.display='none';
+document.getElementById('saveInfo').classList.remove('show');
+document.getElementById('playerNameInput').value='';
 });
+// Keyboard controls
+document.addEventListener('keydown',(e)=>{
+if(!g.running||g.paused||g.questionShowing)return;
+switch(e.key){
+case'ArrowUp':case'w':case'W':tryMove(0,-1);break;
+case'ArrowDown':case's':case'S':tryMove(0,1);break;
+case'ArrowLeft':case'a':case'A':tryMove(-1,0);break;
+case'ArrowRight':case'd':case'D':tryMove(1,0);break;
+case'Escape':case'p':case'P':
+g.paused=!g.paused;
+document.getElementById('pauseMenu').classList.toggle('active',g.paused);
+break;
+}
+});
+// Auto-save every 30 seconds
+setInterval(()=>{
+if(g.running&&!g.paused){
+autoSave();
+}
+},30000);
 render();
 });
 </script>
